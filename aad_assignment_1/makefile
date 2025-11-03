@@ -28,14 +28,14 @@ CUDA_ARCH = sm_75
 #
 # default target
 #
-all: sha1_tests sha1_cuda_test sha1_cuda_kernel.cubin deti_coin_miner deti_coin_no_simd avx avx2 avx512f
+all: sha1_tests sha1_cuda_test sha1_cuda_kernel.cubin deti_coin_no_simd avx avx2 avx512f
 #
 # clean up
 #
 clean:
 	rm -f sha1_tests
 	rm -f sha1_cuda_test sha1_cuda_kernel.cubin
-	rm -f deti_coin_miner deti_coin_no_simd
+	rm -f deti_coin_no_simd
 	rm -f avx avx2 avx512f
 	rm -f a.out
 #
@@ -51,11 +51,6 @@ sha1_cuda_test: aad_sha1_cuda_test.c sha1_cuda_kernel.cubin aad_sha1.h aad_data_
 #
 sha1_cuda_kernel.cubin: aad_sha1_cuda_kernel.cu aad_sha1.h makefile
 	nvcc -arch=$(CUDA_ARCH) --compiler-options -O2,-Wall -I$(CUDA_DIR)/include --cubin $< -o $@
-#
-# CPU-only miner (mandatory part - original version)
-#
-deti_coin_miner: deti_coin_miner.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
-	cc -march=native -Wall -Wshadow -Werror -O3 $< -o $@
 #
 # CPU-only miner (no SIMD - V3 unified version)
 #
