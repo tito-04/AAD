@@ -47,14 +47,16 @@ static double wall_time_delta(void)
 // see, for example, https://en.wikipedia.org/wiki/Linear_congruential_generator
 // not good for cryptographic applications, but good enough to generate test data
 //
+// 
+//
 
 __attribute__((unused))
 u08_t random_byte(void)
-{
-  static u32_t x = 0u;
+{ // MMIX by Donald Knuth
+  static u64_t x = 2836718637216382173ul;
 
-  x = 3134521u * x + 1u;
-  return (u08_t)x;
+  x = 6364136223846793005ul * x + 1442695040888963407ul;
+  return (u08_t)(x >> 43);
 }
 
 

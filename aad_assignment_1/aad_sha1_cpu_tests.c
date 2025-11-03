@@ -165,7 +165,7 @@ static void test_sha1_avx(int n_tests,int n_measurements)
   for(n = 0;n < n_measurements;n++)
   {
     interleaved_data[0][0]++;
-    sha1(&data[lane].i[0],&hash[lane].i[0]);
+    sha1_avx((v4si *)&interleaved_data[0],(v4si *)&interleaved_hash[0]);
     sum += interleaved_hash[4][0];
   }
   time_measurement();
@@ -235,7 +235,7 @@ static void test_sha1_avx2(int n_tests,int n_measurements)
   for(n = 0;n < n_measurements;n++)
   {
     interleaved_data[0][0]++;
-    sha1(&data[lane].i[0],&hash[lane].i[0]);
+    sha1_avx2((v8si *)&interleaved_data[0],(v8si *)&interleaved_hash[0]);
     sum += interleaved_hash[4][0];
   }
   time_measurement();
@@ -305,7 +305,7 @@ static void test_sha1_avx512f(int n_tests,int n_measurements)
   for(n = 0;n < n_measurements;n++)
   {
     interleaved_data[0][0]++;
-    sha1(&data[lane].i[0],&hash[lane].i[0]);
+    sha1_avx512f((v16si *)&interleaved_data[0],(v16si *)&interleaved_hash[0]);
     sum += interleaved_hash[4][0];
   }
   time_measurement();
@@ -375,7 +375,7 @@ static void test_sha1_neon(int n_tests,int n_measurements)
   for(n = 0;n < n_measurements;n++)
   {
     interleaved_data[0][0]++;
-    sha1(&data[lane].i[0],&hash[lane].i[0]);
+    sha1_neon((uint32x4_t *)&interleaved_data[0],(uint32x4_t *)&interleaved_hash[0]);
     sum += interleaved_hash[4][0];
   }
   time_measurement();
