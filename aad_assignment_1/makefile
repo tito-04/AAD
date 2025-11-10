@@ -69,7 +69,7 @@ avx2: deti_coin_miner_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_util
 	cc -mavx2 -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto $< -o $@
 
 # AVX-512F version (SIMD width = 16)
-avx512f: temp.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
+avx512f: deti_coin_miner_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
 	cc -mavx512f -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto $< -o $@
 
 temp_avx: temp.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
@@ -78,5 +78,5 @@ temp_avx: temp.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_
 temp_avx2: temp.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
 	cc -mavx2 -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto -fopenmp $< -o $@
 
-temp_512f: temp.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
+temp_avx512f: temp.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
 	cc -mavx512f -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto -fopenmp $< -o $@
