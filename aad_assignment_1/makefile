@@ -28,7 +28,7 @@ CUDA_ARCH = sm_75
 #
 # default target
 #
-all: sha1_tests sha1_cuda_test sha1_cuda_kernel.cubin deti_coin_no_simd avx avx2 avx512f
+all: sha1_tests deti_coin_no_simd avx avx2 avx512f temp_avx temp_avx2 temp_avx512f
 #
 # clean up
 #
@@ -37,6 +37,7 @@ clean:
 	rm -f sha1_cuda_test sha1_cuda_kernel.cubin
 	rm -f deti_coin_no_simd
 	rm -f avx avx2 avx512f
+	rm -f temp_avx temp_avx2 temp_avx512f
 	rm -f a.out
 #
 # test the CUSTOM_SHA1_CODE macro
@@ -61,63 +62,21 @@ deti_coin_no_simd: deti_coin_no_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.
 #
 # AVX version (SIMD width = 4)
 avx: deti_coin_miner_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
-	cc -mavx -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto -fopenmp $< -o $@
+	cc -mavx -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto $< -o $@
 
 # AVX2 version (SIMD width = 8)
 avx2: deti_coin_miner_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
-	cc -mavx2 -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto -fopenmp $< -o $@
+	cc -mavx2 -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto $< -o $@
 
 # AVX-512F version (SIMD width = 16)
-avx512f: deti_coin_miner_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
+avx512f: temp.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
+	cc -mavx512f -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto $< -o $@
+
+temp_avx: temp.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
+	cc -mavx -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto -fopenmp $< -o $@
+
+temp_avx2: temp.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
+	cc -mavx2 -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto -fopenmp $< -o $@
+
+temp_512f: temp.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
 	cc -mavx512f -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto -fopenmp $< -o $@
-#
-# Helper targets for testing different SIMD versions
-#
-test_avx: avx
-	@echo "========================================="
-	@echo "Testing AVX version (SIMD width = 4)"
-	@echo "========================================="
-	./avx "AVX Test" 10000000
-
-test_avx2: avx2
-	@echo "========================================="
-	@echo "Testing AVX2 version (SIMD width = 8)"
-	@echo "========================================="
-	./avx2 "AVX2 Test" 10000000
-
-test_avx512f: avx512f
-	@echo "========================================="
-	@echo "Testing AVX-512F version (SIMD width = 16)"
-	@echo "========================================="
-	./avx512f "AVX512F Test" 10000000
-#
-# Test the no-SIMD version
-#
-test_no_simd: deti_coin_no_simd
-	@echo "========================================="
-	@echo "Testing CPU No-SIMD version (V3 Unified)"
-	@echo "========================================="
-	./deti_coin_no_simd "NoSIMD Test" 10000000
-#
-# Run all SIMD tests in sequence
-#
-test_all_simd: test_avx test_avx2 test_avx512f
-	@echo "========================================="
-	@echo "All SIMD tests completed!"
-	@echo "========================================="
-#
-# Compare all implementations (no-SIMD + all SIMD versions)
-#
-test_compare: test_no_simd test_all_simd
-	@echo "========================================="
-	@echo "All implementation tests completed!"
-	@echo "Compare the performance results above"
-	@echo "========================================="
-#
-# Check CPU features
-#
-check_cpu:
-	@echo "Checking CPU SIMD support..."
-	@grep -o 'avx[^ ]*' /proc/cpuinfo | sort -u || echo "AVX not found in /proc/cpuinfo"
-	@echo ""
-	@lscpu | grep -i flags | grep -o 'avx[^ ]*' || echo "Use 'lscpu' to check manually"

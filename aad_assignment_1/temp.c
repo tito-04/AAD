@@ -1,5 +1,6 @@
 //
 // DETI Coin Miner - CPU SIMD Implementation (AVX-512/AVX2/AVX/NEON)
+// Otimização 1: Multithreading com OpenMP
 // Arquiteturas de Alto Desempenho 2025/2026
 //
 #include <time.h>
@@ -9,6 +10,7 @@
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>
+#include <omp.h> // <--- ADICIONADO PARA OPENMP
 #include "aad_data_types.h"
 #include "aad_utilities.h"
 #include "aad_sha1_cpu.h"
@@ -30,13 +32,8 @@
     #define SIMD_TYPE v4si
     #define SHA1_SIMD sha1_avx
     #define SIMD_NAME "AVX"
-#elif defined(__ARM_NEON)
-    #define SIMD_WIDTH 4
-    #define SIMD_TYPE uint32x4_t
-    #define SHA1_SIMD sha1_neon
-    #define SIMD_NAME "NEON"
 #else
-    #error "No SIMD support detected. Compile with -mavx512f, -mavx2, -mavx, or ensure ARM NEON is available"
+    #error "No SIMD support detected. Compile with -mavx512f, -mavx2, -mavx"
 #endif
 
 // Global variables for statistics and randomization
@@ -76,6 +73,7 @@ static inline u08_t random_byte_seeded(u64_t *state) {
 }
 
 // Generate a single DETI coin candidate message
+// ESTA FUNÇÃO JÁ É THREAD-SAFE (re-entrante)
 static void generate_single_message(u32_t data[14], u64_t counter, const char *custom_text) {
     memset(data, 0, 14 * sizeof(u32_t));
     
@@ -99,7 +97,6 @@ static void generate_single_message(u32_t data[14], u64_t counter, const char *c
     }
     
     // Initialize PRNG state uniquely for this message
-    // Combines global_seed, counter, and memory address for maximum entropy
     u64_t rng_state = global_seed ^ counter ^ (u64_t)(uintptr_t)data;
     
     // Additional mixing to ensure good initial state
@@ -108,15 +105,9 @@ static void generate_single_message(u32_t data[14], u64_t counter, const char *c
     // Fill remaining positions with random printable ASCII characters
     while(pos < 54) {
         u08_t b = random_byte_seeded(&rng_state);
-        
-        // Map to printable ASCII range 0x20-0x7E (space to tilde)
-        b = 0x20 + (b % 0x5F);  // 0x5F = 0x7F - 0x20
-        
-        // Skip newline character (0x0A would never occur here, but be safe)
-        if(b != (u08_t)'\n') {
-            bytes[pos ^ 3] = b;
-            pos++;
-        }
+        b = 0x21 + (b % 0x5E);  
+        bytes[pos ^ 3] = b;
+        pos++;
     }
     
     // Add mandatory newline at position 54
@@ -169,12 +160,13 @@ static void deinterleave_hashes(u32_t hashes[][5], SIMD_TYPE *interleaved_hash, 
 }
 
 // Print coin information
-static void print_coin(u32_t data[14], u32_t hash[5], u64_t counter, u32_t value) {
+// <--- MODIFICADO PARA OPENMP (só deve ser chamado de zona 'critical')
+static void print_coin(u32_t data[14], u32_t hash[5], u64_t counter_id, u32_t value) {
     printf("\n========================================\n");
-    printf("DETI COIN FOUND!\n");
+    printf("DETI COIN FOUND! (Thread %d)\n", omp_get_thread_num());
     printf("========================================\n");
     printf("Counter: %llu (offset: %llu)\n", 
-           (unsigned long long)counter,
+           (unsigned long long)(counter_id - global_counter_offset), // Counter relativo
            (unsigned long long)global_counter_offset);
     printf("Value: %u\n", value);
     printf("SHA1: ");
@@ -199,18 +191,14 @@ static void print_coin(u32_t data[14], u32_t hash[5], u64_t counter, u32_t value
 }
 
 // Main SIMD search function
+// <--- FUNÇÃO PRINCIPAL MODIFICADA PARA OPENMP
 void search_deti_coins_simd(const char *custom_text, u64_t max_attempts) {
-    u32_t messages[SIMD_WIDTH][14];
-    u32_t hashes[SIMD_WIDTH][5];
-    SIMD_TYPE interleaved_data[14];
-    SIMD_TYPE interleaved_hash[5];
-    
-    u64_t counter = 0;
+
     u64_t last_report = 0;
     const u64_t report_interval = 1000000;
     
     printf("========================================\n");
-    printf("DETI COIN MINER - CPU %s (SIMD x%d)\n", SIMD_NAME, SIMD_WIDTH);
+    printf("DETI COIN MINER - CPU %s (SIMD x%d) - OpenMP\n", SIMD_NAME, SIMD_WIDTH);
     printf("========================================\n");
     printf("Global seed: 0x%08x\n", global_seed);
     printf("Counter offset: %llu\n", (unsigned long long)global_counter_offset);
@@ -222,55 +210,110 @@ void search_deti_coins_simd(const char *custom_text, u64_t max_attempts) {
     time_measurement();
     double start_time = measured_wall_time[1].tv_sec + measured_wall_time[1].tv_nsec * 1e-9;
     
-    while(keep_running && (max_attempts == 0 || counter < max_attempts)) {
-        // Generate SIMD_WIDTH messages with unique global counter offset
-        for(int i = 0; i < SIMD_WIDTH; i++) {
-            generate_single_message(messages[i], 
-                                   global_counter_offset + counter + (u64_t)i, 
-                                   custom_text);
-        }
+    // <--- INÍCIO DA REGIÃO PARALELA ---
+    #pragma omp parallel
+    {
+        // --- Variáveis Privadas da Thread ---
+        // Buffers de trabalho. Cada thread tem o seu.
+        u32_t messages[SIMD_WIDTH][14];
+        u32_t hashes[SIMD_WIDTH][5];
+        SIMD_TYPE interleaved_data[14];
+        SIMD_TYPE interleaved_hash[5];
         
-        // Interleave messages for SIMD processing
-        interleave_messages(interleaved_data, messages, SIMD_WIDTH);
+        // Obter informação da thread
+        int tid = omp_get_thread_num();
+        int n_threads = omp_get_num_threads();
         
-        // Compute SIMD_WIDTH hashes in parallel
-        SHA1_SIMD(interleaved_data, interleaved_hash);
-        
-        // Deinterleave results
-        deinterleave_hashes(hashes, interleaved_hash, SIMD_WIDTH);
-        
-        // Check each hash for valid coins
-        for(int i = 0; i < SIMD_WIDTH; i++) {
-            if(is_valid_deti_coin(hashes[i])) {
-                u32_t value = count_coin_value(hashes[i]);
-                print_coin(messages[i], hashes[i], counter + (u64_t)i, value);
-                save_coin(messages[i]);
-                total_coins_found++;
+        // Cada thread começa num 'bloco' diferente (distribuição escalonada)
+        u64_t block_counter = (u64_t)tid;
+
+        // --- Loop Principal da Thread ---
+        while(keep_running) {
+            
+            // 1. Condição de paragem (se max_attempts foi definido)
+            if (max_attempts > 0) {
+                u64_t current_total;
+                // Leitura atómica do contador global
+                #pragma omp atomic read
+                current_total = total_attempts;
+                
+                if (current_total >= max_attempts) {
+                    keep_running = 0; // Sinaliza às outras threads
+                    break;
+                }
             }
-        }
-        
-        counter += SIMD_WIDTH;
-        total_attempts += SIMD_WIDTH;
-        
-        // Periodic status report
-        if(counter - last_report >= report_interval) {
-            time_measurement();
-            double elapsed = measured_wall_time[1].tv_sec + measured_wall_time[1].tv_nsec * 1e-9 - start_time;
-            double rate = (double)counter / elapsed;
             
-            printf("\r[%llu attempts] [%llu coins] [%.2f MH/s]          ",
-                   (unsigned long long)counter,
-                   (unsigned long long)total_coins_found,
-                   rate / 1e6);
-            fflush(stdout);
+            // 2. Gerar ID de trabalho globalmente único
+            // O counter_id é a base para este bloco de SIMD_WIDTH mensagens
+            u64_t counter_id_base = global_counter_offset + (block_counter * SIMD_WIDTH);
             
-            last_report = counter;
-        }
+            // 3. Gerar mensagens (trabalho local)
+            for(int i = 0; i < SIMD_WIDTH; i++) {
+                generate_single_message(messages[i], 
+                                       counter_id_base + (u64_t)i, 
+                                       custom_text);
+            }
+            
+            // 4. Processar (trabalho local)
+            interleave_messages(interleaved_data, messages, SIMD_WIDTH);
+            SHA1_SIMD(interleaved_data, interleaved_hash);
+            deinterleave_hashes(hashes, interleaved_hash, SIMD_WIDTH);
+            
+            // 5. Verificar (trabalho local)
+            for(int i = 0; i < SIMD_WIDTH; i++) {
+                if(is_valid_deti_coin(hashes[i])) {
+                    u32_t value = count_coin_value(hashes[i]);
+                    
+                    // --- Secção Crítica ---
+                    // Impressão e gravação de ficheiros TÊM de ser sincronizadas
+                    #pragma omp critical (print_and_save)
+                    {
+                        total_coins_found++; // Incrementa imediatamente o contador global
+                        print_coin(messages[i], hashes[i], counter_id_base + (u64_t)i, value);
+                        save_coin(messages[i]);
+                    }
+                }
+            }
+            
+            // 6. Atualizar contadores globais
+            #pragma omp atomic update
+            total_attempts += SIMD_WIDTH;
+            
+            // Avança para o próximo bloco de trabalho desta thread
+            block_counter += (u64_t)n_threads;
+            
+            
+            // 7. Reportar (apenas a thread master)
+            #pragma omp master
+            {
+                u64_t current_total;
+                // Lê o total global atualizado
+                #pragma omp atomic read
+                current_total = total_attempts;
+
+                if(current_total - last_report >= report_interval) {
+                    last_report += report_interval; // Apenas o master mexe nisto
+                    
+                    u64_t current_coins;
+                    #pragma omp atomic read
+                    current_coins = total_coins_found;
+                    
+                    time_measurement();
+                    double elapsed = measured_wall_time[1].tv_sec + measured_wall_time[1].tv_nsec * 1e-9 - start_time;
+                    double rate = (double)current_total / elapsed; // Use 'current_total'
+                    
+                    printf("\r[%llu attempts] [%llu coins] [%.2f MH/s]          ",
+                           (unsigned long long)current_total,
+                           (unsigned long long)current_coins,
+                           rate / 1e6);
+                    fflush(stdout);
+                }
+            }
+            
+        } // --- Fim do while(keep_running) ---
         
-        // Break early if max_attempts reached
-        if (max_attempts != 0 && counter >= max_attempts) 
-            break;
-    }
+    } // --- Fim da região paralela ---
+    
     
     // Final statistics
     time_measurement();
@@ -286,7 +329,9 @@ void search_deti_coins_simd(const char *custom_text, u64_t max_attempts) {
     printf("Average rate: %.2f million hashes/second\n", (double)total_attempts / total_time / 1e6);
     if(total_coins_found > 0)
         printf("Average time per coin: %.2f seconds\n", total_time / total_coins_found);
-    printf("SIMD width: %d (%s)\n", SIMD_WIDTH, SIMD_NAME);
+    
+    // <--- MODIFICADO PARA OPENMP
+    printf("SIMD width: %d (%s) x %d Threads (OpenMP)\n", SIMD_WIDTH, SIMD_NAME, omp_get_max_threads());
     printf("========================================\n");
     
     save_coin(NULL);
@@ -297,7 +342,7 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, signal_handler);
     
     // Initialize global PRNG seed with maximum entropy
-    // Combines: current time, process ID, stack address, and nanoseconds
+    // (Esta inicialização já era robusta e thread-safe)
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     
@@ -312,7 +357,6 @@ int main(int argc, char *argv[]) {
     }
     
     // Generate random counter offset so each run explores different space
-    // This ensures different coins are found in different runs
     global_counter_offset = ((u64_t)rand_r(&global_seed) << 32) | 
                            (u64_t)rand_r(&global_seed);
     
