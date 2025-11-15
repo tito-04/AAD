@@ -94,8 +94,7 @@ void generate_message(u32_t data[14], u64_t counter, const char *custom_text) {
         u08_t b = random_byte_seeded(&rng_state);
         
         // Mapeia para o range ASCII imprimível 0x20-0x7E (espaço até til)
-        b = 0x21 + (b % 0x5E);  // 0x5F = 0x7F - 0x20
-        
+        b = 0x20 + (u08_t)((b * 95) >> 8);        
         // Não é preciso verificar por '\n' (0x0A) porque o range 0x20-0x7E não o contém
         bytes[pos ^ 3] = b;
         pos++;

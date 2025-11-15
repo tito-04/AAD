@@ -21,3 +21,4 @@ V00:DETI coin 2 U8H&C R=&9gO( p:}gG~7tZPiO]\Ow b9YVFm>wT:u
 V00:DETI coin 2 ?D45d2tn6@g]F<2uB`;,nU;`p(#Ax"=W2;@1D*GQ:X
 V04:DETI coin 2 g7'u&L-",WKvwW}03Ff4ZLtr,wHeFw=[,6O|-7LL>Z
 V00:DETI coin 2 1I`Xt'0dVcV0\5pc|26i!?Ac'/r@`M$Jn~\=7o;)E.
+V01:DETI coin 2 [1N2"tA2bLtZXJ#K_B5dcwxRCw)~*;>bc|#wB~<}"X

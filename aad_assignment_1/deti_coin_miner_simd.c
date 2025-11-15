@@ -1,24 +1,6 @@
 //
-// DETI Coin Miner - CPU SIMD Implementation (Max Performance Refactor)
+// DETI Coin Miner - CPU SIMD Implementation
 // Arquiteturas de Alto Desempenho 2025/2026
-//
-// Arquiteto: Gemini (QI 150)
-//
-// Otimização: "Loop Fusion" (Computação + Verificação)
-//              + "Generate/Transpose Fusion"
-//
-// ANÁLISE: A arquitetura original de "Super-Batching" (Loop Fission)
-// era o principal gargalo. Ela saturava a largura de banda da memória
-// ao escrever/ler um buffer `hash_batch` massivo entre dois loops.
-//
-// Esta nova arquitetura funde os loops. O resultado do hash é
-// verificado imediatamente, permanecendo nos registos/L1.
-// O branch de verificação (`if(mask)`) é >99.99% previsível (false),
-// tornando a penalização por "branch misprediction" insignificante.
-//
-// Também fundimos a geração da mensagem e a transposição (AoS->SoA)
-// para eliminar o buffer `messages[][]`, melhorando a localidade da cache L1.
-// O pipeline é agora CPU-bound, não memory-bound.
 //
 #include <time.h>
 #include <stdio.h>
@@ -32,13 +14,11 @@
 #include <immintrin.h>
 #endif
 
-// Headers fornecidos pelo utilizador
 #include "aad_data_types.h"
 #include "aad_utilities.h"
 #include "aad_sha1_cpu.h"
 #include "aad_vault.h"
 
-// --- Definições SIMD (copiado do original) ---
 #if defined(__AVX512F__)
     #define SIMD_WIDTH 16
     #define SIMD_TYPE v16si
@@ -58,7 +38,6 @@
     #error "No compatible AVX support detected. Compile with -mavx512f, -mavx2, or -mavx."
 #endif
 
-// --- Definições de Comparação de Hash (copiado do original) ---
 #if defined(__AVX512F__)
     #define TARGET_HASH_TYPE    v16si
     #define TARGET_HASH_SET1(v) (v16si)_mm512_set1_epi32(v)
@@ -81,11 +60,6 @@
     #define MASK_IS_ZERO(m)     (m == 0)
     #define MASK_TEST_LANE(m,i) (m & (1 << i))
 #endif
-
-// O conceito de "BATCH_ITERATIONS" foi removido.
-// O único "lote" é agora o `SIMD_WIDTH`.
-
-// --- Globais e Funções de Utilidade (copiado do original) ---
 
 static volatile int keep_running = 1;
 static u64_t total_attempts = 0;
@@ -182,11 +156,7 @@ static inline void generate_single_message_optimized(u32_t data[14], u64_t count
     }
 }
 
-// REMOVIDO: interleave_messages_optimized
-// Esta função foi fundida com o loop de geração para melhor localidade.
-
 static void deinterleave_hashes(u32_t hashes[][5], SIMD_TYPE *interleaved_hash, int count) {
-    // Esta função ainda é necessária para o "caminho lento" (slow path)
     for(int word = 0; word < 5; word++) {
         u32_t *temp = (u32_t *)&interleaved_hash[word];
         for(int lane = 0; lane < count; lane++) {
@@ -196,15 +166,11 @@ static void deinterleave_hashes(u32_t hashes[][5], SIMD_TYPE *interleaved_hash, 
 }
 
 void search_deti_coins_simd_optimized(const char *custom_text, u64_t max_attempts) {
-    // Buffers de pipeline (agora na stack, cabem na L1)
     SIMD_TYPE interleaved_data[14] __attribute__((aligned(64)));
     SIMD_TYPE hash_result[5] __attribute__((aligned(64)));
-    
-    // REMOVIDO: Alocação do `hash_batch`
-    
-    // Buffer temporário para o "caminho lento"
+
     u32_t hashes_deinterleaved[SIMD_WIDTH][5] __attribute__((aligned(64)));
-    u32_t message_to_save[14]; // Reutilizado como buffer temp para geração
+    u32_t message_to_save[14];
 
     
     u64_t counter = 0;
@@ -238,11 +204,9 @@ void search_deti_coins_simd_optimized(const char *custom_text, u64_t max_attempt
     
     while(keep_running) {
         
-        // Determina quantas iterações fazer (lógica original está correta)
         u64_t remaining_attempts = (max_attempts == 0) ? (u64_t)SIMD_WIDTH : (max_attempts - counter);
         if(remaining_attempts == 0 && max_attempts != 0) break;
         
-        // Define um número razoável de iterações para verificar o 'keep_running'
         u64_t iter_to_run_this_cycle = 1024 * (u64_t)SIMD_WIDTH;
         if (remaining_attempts < iter_to_run_this_cycle) {
             iter_to_run_this_cycle = remaining_attempts;
@@ -253,38 +217,26 @@ void search_deti_coins_simd_optimized(const char *custom_text, u64_t max_attempt
         
         u64_t batch_start_counter = global_counter_offset + counter;
 
-        // --- 1. LOOP PRINCIPAL (COMPUTAÇÃO + VERIFICAÇÃO FUNDIDOS) ---
         for (int b = 0; b < batch_iterations; b++) {
             u64_t iter_counter = batch_start_counter + (b * (u64_t)SIMD_WIDTH);
-            
-            // --- Fusão de Geração (AoS) + Transposição (SoA) ---
-            // Removemos o buffer `messages[][]`.
-            // Geramos uma mensagem e "espalhamo-la" (scatter)
-            // diretamente para o buffer SoA `interleaved_data`.
+
             for(int i = 0; i < SIMD_WIDTH; i++) {
                 
-                // 1. Gerar mensagem única (AoS) para o buffer temporário
                 generate_single_message_optimized(message_to_save, 
                                                  iter_counter + (u64_t)i,
                                                  has_custom);
                 
-                // 2. Transpor "on-the-fly" esta mensagem para o buffer SoA
                 for(int word = 0; word < 14; word++) {
-                    // Escreve na "lane" `i` da palavra `word`
                     ((u32_t*)&interleaved_data[word])[i] = message_to_save[word];
                 }
             }
             
-            // --- Hash (os dados estão na L1) ---
             SHA1_SIMD(interleaved_data, hash_result);
             
-            // --- Verificação Imediata (o resultado está nos registos/L1) ---
             TARGET_MASK_TYPE mask = TARGET_HASH_CMP(hash_result[0], target_hash);
             
             if (!MASK_IS_ZERO(mask)) {
-                // CAMINHO LENTO: (Extremamente raro, branch previsível)
-                
-                // De-intercalar o resultado do hash (que está quente na L1)
+
                 deinterleave_hashes(hashes_deinterleaved, hash_result, SIMD_WIDTH);
                 
                 for(int i = 0; i < SIMD_WIDTH; i++) {
@@ -296,9 +248,7 @@ void search_deti_coins_simd_optimized(const char *custom_text, u64_t max_attempt
                             continue;
                         }
 
-                        // Re-gerar a *única* mensagem para salvar
-                        // (o buffer `message_to_save` pode já conter
-                        // a mensagem da lane 'i', mas é mais seguro re-gerar)
+
                         generate_single_message_optimized(message_to_save, 
                                                          found_counter, 
                                                          has_custom);
@@ -313,9 +263,8 @@ void search_deti_coins_simd_optimized(const char *custom_text, u64_t max_attempt
                     }
                 }
             }
-        } // Fim do loop principal
-        
-        // --- REMOVIDO: LOOP DE VERIFICAÇÃO (Frio) ---
+        } 
+ 
 
         u64_t attempts_in_batch = (u64_t)batch_iterations * SIMD_WIDTH;
         counter += attempts_in_batch;
@@ -338,7 +287,6 @@ void search_deti_coins_simd_optimized(const char *custom_text, u64_t max_attempt
         if(max_attempts != 0 && counter >= max_attempts) break;
     }
     
-    // Estatísticas Finais
     time_measurement();
     double end_time = measured_wall_time[1].tv_sec + measured_wall_time[1].tv_nsec * 1e-9;
     double total_time = end_time - start_time;
@@ -361,7 +309,6 @@ void search_deti_coins_simd_optimized(const char *custom_text, u64_t max_attempt
     printf("SIMD width: %d (%s)\n", SIMD_WIDTH, SIMD_NAME);
     printf("========================================\n");
     
-    // REMOVIDO: free(hash_batch);
     save_coin(NULL);
 }
 
