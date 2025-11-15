@@ -56,27 +56,27 @@ sha1_cuda_kernel.cubin: aad_sha1_cuda_kernel.cu aad_sha1.h makefile
 # CPU-only miner (no SIMD - V3 unified version)
 #
 deti_coin_no_simd: deti_coin_no_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
-	cc -march=native -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto $< -o $@
+	cc -march=native -Wall -Wshadow -Werror -O3 -funroll-loops -flto $< -o $@
 #
 # SIMD versions of temp.c
 #
 # AVX version (SIMD width = 4)
 avx: deti_coin_miner_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
-	cc -mavx -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto $< -o $@
+	cc -mavx -Wall -Wshadow -Werror -O3 -funroll-loops -flto $< -o $@
 
 # AVX2 version (SIMD width = 8)
 avx2: deti_coin_miner_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
-	cc -mavx2 -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto $< -o $@
+	cc -mavx2 -Wall -Wshadow -Werror -O3 -funroll-loops -flto $< -o $@
 
 # AVX-512F version (SIMD width = 16)
 avx512f: deti_coin_miner_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
-	cc -mavx512f -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto $< -o $@
+	cc -mavx512f -Wall -Wshadow -Werror -O3 -funroll-loops -flto $< -o $@
 
 temp_avx: temp.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
-	cc -mavx -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto -fopenmp $< -o $@
+	cc -mavx -Wall -Wshadow -Werror -O3 -funroll-loops -flto -fopenmp $< -o $@
 
 temp_avx2: temp.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
-	cc -mavx2 -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto -fopenmp $< -o $@
+	cc -mavx2 -Wall -Wshadow -Werror -O3 -funroll-loops -flto -fopenmp $< -o $@
 
 temp_avx512f: temp.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
-	cc -mavx512f -Wall -Wshadow -Werror -O3 -ffast-math -funroll-loops -flto -fopenmp $< -o $@
+	cc -mavx512f -Wall -Wshadow -Werror -O3 -funroll-loops -flto -fopenmp $< -o $@
