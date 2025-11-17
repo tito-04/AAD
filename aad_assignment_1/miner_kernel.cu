@@ -21,6 +21,8 @@
 #include "aad_sha1.h"       // Para CUSTOM_SHA1_CODE
 #include "aad_data_types.h" // Para u32_t, u64_t
 
+__constant__ u32_t c_template_message[14]; // Template da mensagem (constante na GPU)
+
 // PRNG (LCG) adaptado de aad_utilities.h para correr na GPU.
 // É uma função __device__ para ser chamada por cada thread.
 static __device__ inline u64_t lcg_rand(u64_t state)
@@ -33,7 +35,6 @@ extern "C" __global__ __launch_bounds__(RECOMENDED_CUDA_BLOCK_SIZE,1)
 void miner_kernel(
     u64_t base_counter,           // Contador base para este lançamento
     u32_t *coins_storage_area,    // Buffer de resultados (o "vault" da GPU)
-    const u32_t *d_template_message, // Template da mensagem (pré-carregado pelo host)
     int start_pos                 // Posição onde o PRNG deve começar a escrever
 )
 {
@@ -48,10 +49,10 @@ void miner_kernel(
     // --- 3. Gerar Mensagem "On The Fly" ---
     
     // Copiar o template (header, custom text, \n, 0x80)
-    // O compilador irá otimizar (unroll) este loop.
+    #pragma unroll
     for(int i = 0; i < 14; i++)
     {
-        data[i] = d_template_message[i];
+        data[i] = c_template_message[i];
     }
 
     // Obter um ponteiro de bytes para preencher a parte aleatória
@@ -96,14 +97,10 @@ void miner_kernel(
     if(hash[0] == 0xAAD20250u)
     {
         // Encontrámos uma moeda!
-        // Reservar 14 'u32_t' no buffer de resultados
         u32_t idx = atomicAdd(&coins_storage_area[0], 14u);
-
-        // Verificar se ainda há espaço no buffer
-        if(idx < 1024u - 14u)
+        if(idx < 1010u) // 1024 - 14 = 1010
         {
-            // Copiar a moeda (14 * u32_t) para o buffer
-            // O compilador também irá otimizar este loop.
+            #pragma unroll
             for(int i = 0; i < 14; i++)
             {
                 coins_storage_area[idx + i] = data[i];

@@ -1,39 +1,28 @@
 //
 // Ficheiro: cuda_miner.c
 //
-// Anfitrião (Host) para o minerador CUDA de DETI coins.
+// Anfitrião (Host) para o minerador CUDA de DETI coins
+// (Versão Otimizada com Pipeline Assíncrono)
 //
 // Arquitetura:
-// 1. Prepara os templates de mensagem (base e custom) no CPU.
-// 2. Inicializa o CUDA e aloca dois buffers na GPU:
-//    - data[0]: 14 * u32_t (para guardar o template)
-//    - data[1]: 1024 * u32_t (para o vault de resultados)
-// 3. Copia o template escolhido do CPU para o data[0] da GPU.
-// 4. Inicia um loop (while keep_running):
-//    a. Define o contador do vault (h_vault[0]) para 1.
-//    b. Copia h_vault[0] para o data[1] da GPU.
-//    c. Lança o 'miner_kernel' com o 'base_counter' atualizado.
-//    d. Copia o data[1] (vault) da GPU de volta para o h_vault.
-//    e. Verifica se h_vault[0] > 1. Se sim, processa as moedas
-//       encontradas e guarda-as no vault do disco.
-//    f. Atualiza 'base_counter' e reporta o progresso.
-// 5. Limpa e termina.
+// 1. Usa N_STREAMS (ex: 2) para "ping-pong".
+// 2. Enquanto a GPU corre o kernel no stream[0], a CPU processa resultados do stream[1].
+// 3. A sincronização é feita manualmente no host com cuStreamSynchronize.
 //
-
 #include <time.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
-#include <unistd.h> // Para getpid()
+#include <unistd.h> 
 
 // Headers do projeto
 #include "aad_data_types.h"
-#include "aad_utilities.hh" // O seu ficheiro tem .hh, assumindo que é .h
-#include "aad_sha1_cpu.h"   // Necessário para o save_coin()
-#include "aad_vault.h"      // Para save_coin()
-#include "aad_cuda_utilities.h" // Para as funções CUDA
+#include "aad_utilities.h" 
+#include "aad_sha1_cpu.h"   
+#include "aad_vault.h"      
+#include "aad_cuda_utilities.h"
 
 // --- Globais (para estatísticas e sinal) ---
 static volatile int keep_running = 1;
@@ -50,7 +39,6 @@ void signal_handler(int signum) {
 }
 
 // --- Funções de Template (copiadas do seu código AVX) ---
-// Estas são necessárias para preparar o template que será enviado para a GPU.
 static u32_t template_message[14];
 static u32_t template_with_custom[14];
 static int template_initialized = 0;
@@ -86,12 +74,23 @@ static void init_custom_template(const char *custom_text) {
 }
 
 // --- O Minerador CUDA (Função Principal do Host) ---
-void run_cuda_miner(const char *custom_text, u64_t max_attempts)
+void run_cuda_miner(const char *custom_text, u64_t max_attempts, int gpu_device_id)
 {
-    cuda_data_t cd;
-    u32_t *h_template, *h_vault;
-    int start_pos = 12; // Posição default de início do PRNG
+    // --- OPTIMIZATION 1 ---
+    // Usar 2 streams ("slots") para o pipeline "ping-pong"
+    #define N_STREAMS 2 
 
+    cuda_data_t cd;
+    int start_pos = 12; 
+
+    // --- OPTIMIZATION 1 ---
+    // Arrays para gerir os "slots" do pipeline
+    CUstream streams[N_STREAMS];
+    u32_t* h_vaults[N_STREAMS];     // Buffers do Host (pinned)
+    CUdeviceptr d_vaults[N_STREAMS]; // Buffers do Device
+    u64_t base_counters[N_STREAMS];  // Contadores para cada slot
+    void* kernel_args[N_STREAMS][3]; // Argumentos do kernel para cada slot
+    
     // 1. Preparar Templates no Host
     init_template();
     if(custom_text != NULL) {
@@ -99,108 +98,160 @@ void run_cuda_miner(const char *custom_text, u64_t max_attempts)
         start_pos += custom_text_length;
     }
 
-    // 2. Inicializar CUDA
+    // 2. Inicializar CUDA (Configura o SLOT 0)
     memset(&cd, 0, sizeof(cuda_data_t));
-    cd.device_number = 0;
-    cd.cubin_file_name = "miner_kernel.cubin"; // Nome do seu .cubin compilado
+    cd.device_number = gpu_device_id;
+    cd.cubin_file_name = "miner_kernel.cubin"; 
     cd.kernel_name = "miner_kernel";
-    // Buffer 0: 14 * u32_t (para o template da mensagem)
-    cd.data_size[0] = 14 * sizeof(u32_t);
-    // Buffer 1: 1024 * u32_t (para o vault de resultados)
-    cd.data_size[1] = 1024 * sizeof(u32_t);
+    cd.data_size[0] = 0;     // Buffer 0: Template
+    cd.data_size[1] = 1024 * sizeof(u32_t); // Buffer 1: Vault (Slot 0)
     
     initialize_cuda(&cd);
 
-    // Obter ponteiros de host para os buffers
-    h_template = (u32_t *)cd.host_data[0];
-    h_vault    = (u32_t *)cd.host_data[1];
+    // --- OPTIMIZATION 1 ---
+    // Guardar os recursos do SLOT 0 (criados por initialize_cuda)
+    streams[0] = cd.cu_stream;
+    h_vaults[0] = (u32_t*)cd.host_data[1];
+    d_vaults[0] = cd.device_data[1];
 
-    // 3. Copiar Template para a GPU (só uma vez)
-    if(custom_text != NULL) {
-        memcpy(h_template, template_with_custom, 14 * sizeof(u32_t));
-    } else {
-        memcpy(h_template, template_message, 14 * sizeof(u32_t));
+    // Criar recursos para os restantes SLOTS (apenas SLOT 1 neste caso)
+    for(int i = 1; i < N_STREAMS; i++)
+    {
+        CU_CALL( cuStreamCreate, (&streams[i], CU_STREAM_NON_BLOCKING) );
+        // Alocar memória "pinned" (Host) para cópias assíncronas
+        CU_CALL( cuMemAllocHost, ((void **)&h_vaults[i], (size_t)cd.data_size[1]) );
+        // Alocar memória no Device
+        CU_CALL( cuMemAlloc, (&d_vaults[i], (size_t)cd.data_size[1]) );
     }
-    host_to_device_copy(&cd, 0); // Copia h_template para cd.device_data[0]
+
+    // 3. Copiar Template para a __constant__ memory
+    // Esta lógica substitui a antiga secção "3. Copiar Template para a GPU"
+    
+    // 3a. Preparar o template num buffer local do host
+    u32_t h_template_local[14]; 
+    if(custom_text != NULL) {
+        memcpy(h_template_local, template_with_custom, 14 * sizeof(u32_t));
+    } else {
+        memcpy(h_template_local, template_message, 14 * sizeof(u32_t));
+    }
+
+    // 3b. Obter o ponteiro de device para o símbolo "c_template_message"
+    CUdeviceptr d_template_symbol;
+    size_t symbol_size;
+    CU_CALL( cuModuleGetGlobal , (&d_template_symbol, &symbol_size, cd.cu_module, "c_template_message") );
+
+    // 3c. Copiar o template do host para o símbolo no device (síncrono)
+    CU_CALL( cuMemcpyHtoD , (d_template_symbol, h_template_local, 14 * sizeof(u32_t)) );
+    synchronize_cuda(&cd); // Garantir que a cópia única está completa
 
     // 4. Configurar Lançamento do Kernel
     cd.block_dim_x = (unsigned int)RECOMENDED_CUDA_BLOCK_SIZE;
-    
-    // Configurar o Grid (ex: 8192 blocos)
-    // Um número maior mantém a GPU ocupada por mais tempo.
-    cd.grid_dim_x = 8192; 
+    cd.grid_dim_x = 32768; 
     
     u64_t num_threads_per_launch = (u64_t)cd.block_dim_x * (u64_t)cd.grid_dim_x;
-    u64_t base_counter = global_counter_offset;
+    u64_t current_base_counter = global_counter_offset;
     
-    cd.n_kernel_arguments = 4;
-    cd.arg[0] = &base_counter;        // u64_t base_counter
-    cd.arg[1] = &cd.device_data[1];   // u32_t *coins_storage_area
-    cd.arg[2] = &cd.device_data[0];   // const u32_t *d_template_message
-    cd.arg[3] = &start_pos;           // int start_pos
+    // --- OPTIMIZATION 1 ---
+    // Configurar os argumentos para cada stream/slot
+    cd.n_kernel_arguments = 3;
+    for(int i = 0; i < N_STREAMS; i++)
+    {
+        base_counters[i] = current_base_counter;
+        current_base_counter += num_threads_per_launch;
+
+        kernel_args[i][0] = &base_counters[i];
+        kernel_args[i][1] = &d_vaults[i];      // Vault *específico* do stream
+        kernel_args[i][2] = &start_pos;  // Template (comum a todos)
+    }
+
 
     printf("========================================\n");
-    printf("DETI COIN MINER (CUDA Kernel)\n");
+    printf("DETI COIN MINER (CUDA Kernel - Device %d)\n", gpu_device_id);
     printf("GPU: %s\n", cd.device_name);
-    printf("========================================\n");
     printf("Grid Size: %u blocks, Block Size: %u threads\n", cd.grid_dim_x, cd.block_dim_x);
     printf("Hashes per launch: %llu\n", (unsigned long long)num_threads_per_launch);
-    if(custom_text) printf("Custom text: %s\n", custom_text);
-    printf("Press Ctrl+C to stop\n");
+    printf("Pipeline Slots: %d\n", N_STREAMS);
     printf("========================================\n\n");
 
-    time_measurement(); // Iniciar relógio principal
+
+    time_measurement(); 
     double start_time = measured_wall_time[1].tv_sec + measured_wall_time[1].tv_nsec * 1e-9;
     double last_report_time = start_time;
 
-    // 5. Loop Principal de Mineração
-    while(keep_running)
+    // --- OPTIMIZATION 1 ---
+    // 5. "Priming" do Pipeline: Lançar um kernel em CADA stream
+    for(int s = 0; s < N_STREAMS; s++)
     {
-        // a. Resetar o contador do vault da GPU para 1
-        h_vault[0] = 1u;
+        // a. Resetar o contador do vault
+        h_vaults[s][0] = 1u;
         
-        // b. Copiar o contador resetado para a GPU
-        // (Nota: host_to_device_copy copia o buffer todo, mas é pequeno)
-        host_to_device_copy(&cd, 1); 
+        // b. Copiar o reset (assíncrono)
+        CU_CALL( cuMemcpyHtoDAsync, (d_vaults[s], h_vaults[s], (size_t)cd.data_size[1], streams[s]) );
 
-        // c. Lançar o Kernel! (arg[0] é atualizado automaticamente)
-        lauch_kernel(&cd); // Esta função bloqueia até o kernel terminar
+        // c. Lançar o Kernel (assíncrono)
+        CU_CALL( cuLaunchKernel , (cd.cu_kernel, cd.grid_dim_x, 1u, 1u, cd.block_dim_x, 1u, 1u, 0u, streams[s], &kernel_args[s][0], NULL) );
+    }
 
-        // d. Copiar resultados de volta do vault da GPU
-        device_to_host_copy(&cd, 1);
+    // 6. Loop Principal de Mineração (Pipeline)
+    for(int s = 0; keep_running; s = (s + 1) % N_STREAMS)
+    {
+        // a. Sincronizar (ESPERAR) pelo slot 's' (o mais antigo)
+        CU_CALL( cuStreamSynchronize, (streams[s]) );
 
-        // e. Processar moedas encontradas
-        u32_t num_words_in_vault = h_vault[0];
-        if(num_words_in_vault > 1u)
+        // Neste ponto, o kernel [s] terminou. A CPU pode processar os seus resultados.
+        total_attempts += num_threads_per_launch;
+
+        // b. Processar moedas encontradas no slot 's'
+        // (A cópia de DtoH foi síncrona, por isso h_vaults[s][0] não é válido)
+        // Precisamos de copiar o contador de volta primeiro.
+        CU_CALL( cuMemcpyDtoHAsync , ((void *)&h_vaults[s][0], d_vaults[s], sizeof(u32_t), streams[s]) );
+        // Esperar *apenas* por esta pequena cópia
+        CU_CALL( cuStreamSynchronize, (streams[s]) ); 
+        
+        u32_t num_words_in_vault = h_vaults[s][0];
+
+        if(num_words_in_vault > 1u && num_words_in_vault < 1024u)
         {
-            // O contador é > 1, encontrámos moedas!
-            // Iterar pelas moedas (cada uma tem 14 palavras)
+            // Copiar o resto do vault (assíncrono)
+            CU_CALL( cuMemcpyDtoHAsync , ((void *)h_vaults[s], d_vaults[s], num_words_in_vault * sizeof(u32_t), streams[s]) );
+            // Esperar pela cópia
+            CU_CALL( cuStreamSynchronize, (streams[s]) ); 
+
             for(u32_t i = 1; i < num_words_in_vault; i += 14)
             {
-                // h_vault[i] é o início de uma moeda encontrada
-                save_coin(&h_vault[i]); // save_coin verifica o hash
+                save_coin(&h_vaults[s][i]); 
                 total_coins_found++;
-                
-                // (Opcional) Imprimir notificação
-                printf("\n>>> COIN FOUND! (CUDA) Counter ~%llu\n", (unsigned long long)base_counter);
+                printf("\n>>> COIN FOUND! (CUDA Device %d) Counter ~%llu\n", gpu_device_id, (unsigned long long)base_counters[s]);
             }
         }
 
-        // f. Atualizar contadores e reportar
-        base_counter += num_threads_per_launch;
-        total_attempts += num_threads_per_launch;
-
+        // c. Verificar se paramos
         if(max_attempts != 0 && total_attempts >= max_attempts) {
             keep_running = 0;
         }
 
+        // d. RELANÇAR o slot 's' com novo trabalho
+        // (Enquanto a CPU faz isto, a GPU está a trabalhar nos outros N-1 slots)
+        base_counters[s] = current_base_counter;
+        current_base_counter += num_threads_per_launch;
+
+        h_vaults[s][0] = 1u;
+        
+        // Copiar o reset (assíncrono)
+        CU_CALL( cuMemcpyHtoDAsync, (d_vaults[s], h_vaults[s], (size_t)cd.data_size[1], streams[s]) );
+        
+        // Lançar o Kernel (assíncrono)
+        CU_CALL( cuLaunchKernel , (cd.cu_kernel, cd.grid_dim_x, 1u, 1u, cd.block_dim_x, 1u, 1u, 0u, streams[s], &kernel_args[s][0], NULL) );
+
+        // e. Reportar
         time_measurement();
         double current_time = measured_wall_time[1].tv_sec + measured_wall_time[1].tv_nsec * 1e-9;
-        if(current_time - last_report_time >= 1.0) // Reportar a cada segundo
+        if(current_time - last_report_time >= 1.0) 
         {
             double elapsed = current_time - start_time;
             double rate = (double)total_attempts / elapsed;
-            printf("\r[%llu attempts] [%llu coins] [%.2f MH/s]          ",
+            printf("\r[Device %d] [%llu attempts] [%llu coins] [%.2f MH/s]          ",
+                   gpu_device_id,
                    (unsigned long long)total_attempts,
                    (unsigned long long)total_coins_found,
                    rate / 1e6);
@@ -208,10 +259,25 @@ void run_cuda_miner(const char *custom_text, u64_t max_attempts)
             last_report_time = current_time;
         }
     }
+    
+    // Sincronizar tudo antes de sair
+    for(int s = 0; s < N_STREAMS; s++) {
+        CU_CALL( cuStreamSynchronize, (streams[s]) );
+    }
 
-    // 6. Limpeza
-    terminate_cuda(&cd);
-    save_coin(NULL); // Salvar moedas restantes no buffer do vault
+    // 7. Limpeza
+    
+    // --- OPTIMIZATION 1 ---
+    // Limpar os recursos extra que criámos
+    for(int i = 1; i < N_STREAMS; i++)
+    {
+        CU_CALL( cuStreamDestroy, (streams[i]) );
+        CU_CALL( cuMemFreeHost, (h_vaults[i]) );
+        CU_CALL( cuMemFree, (d_vaults[i]) );
+    }
+    
+    terminate_cuda(&cd); // Limpa o stream[0] e os buffers[0]
+    save_coin(NULL); 
 
     // Estatísticas Finais
     time_measurement();
@@ -219,7 +285,7 @@ void run_cuda_miner(const char *custom_text, u64_t max_attempts)
     double total_time = end_time - start_time;
     
     printf("\n\n========================================\n");
-    printf("FINAL STATISTICS (CUDA)\n");
+    printf("FINAL STATISTICS (CUDA Device %d)\n", gpu_device_id);
     printf("========================================\n");
     printf("Total attempts: %llu\n", (unsigned long long)total_attempts);
     printf("Total coins found: %llu\n", (unsigned long long)total_coins_found);
@@ -236,6 +302,7 @@ int main(int argc, char *argv[])
 {
     signal(SIGINT, signal_handler);
     
+    // Inicializar sementes (copiado do seu código AVX)
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     global_seed = (unsigned int)(time(NULL) ^ (uintptr_t)&global_seed ^ (unsigned int)getpid() ^ (unsigned int)ts.tv_nsec);
@@ -244,12 +311,19 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &ts);
     global_counter_offset ^= ((u64_t)ts.tv_nsec << 32) | (u64_t)ts.tv_sec;
 
-    // Obter argumentos
+    // --- Nova Lógica de Argumentos ---
     const char *custom_text = NULL;
     u64_t max_attempts = 0;
-    if(argc > 1) custom_text = argv[1];
-    if(argc > 2) max_attempts = strtoull(argv[2], NULL, 10);
-
+    int gpu_device_id = 0; 
+    
+    if(argc > 1) {
+        gpu_device_id = (int)strtol(argv[1], NULL, 10);
+    }
+    if(argc > 2)
+        custom_text = argv[2];
+    if(argc > 3)
+        max_attempts = strtoull(argv[3], NULL, 10);
+    
     // Sanitizar texto
     char sanitized_text[64];
     if(custom_text != NULL) {
@@ -259,9 +333,9 @@ int main(int argc, char *argv[])
             else sanitized_text[si++] = custom_text[i];
         }
         sanitized_text[si] = '\0';
-        run_cuda_miner(sanitized_text, max_attempts);
+        run_cuda_miner(sanitized_text, max_attempts, gpu_device_id);
     } else {
-        run_cuda_miner(NULL, max_attempts);
+        run_cuda_miner(NULL, max_attempts, gpu_device_id);
     }
     
     return 0;
