@@ -177,8 +177,28 @@ void search_deti_coins_simd(const char *custom_text, u64_t max_attempts) {
     template_bytes[54 ^ 3] = '\n';
     template_bytes[55 ^ 3] = 0x80;
 
-    // Gerar Salt Lento Inicial (20-53)
-    generate_safe_salt(template_bytes, SALT_START_IDX, SALT_END_IDX, custom_text);
+    // Calcular o start do salt aleatório (começa após custom text)
+    int custom_len = 0;
+    if (custom_text != NULL) {
+        custom_len = strlen(custom_text);
+        // Limitar para garantir que não ultrapasse os bytes 20-53
+        if (SALT_START_IDX + custom_len > SALT_END_IDX) {
+            custom_len = SALT_END_IDX - SALT_START_IDX + 1;
+        }
+    }
+    int salt_start_idx = SALT_START_IDX + custom_len;
+
+    // Preencher custom text se fornecido (começa no byte 20)
+    if (custom_len > 0) {
+        for(int i = 0; i < custom_len; i++) {
+            char c = custom_text[i];
+            if (c < 32 || c > 126) c = ' ';
+            template_bytes[(SALT_START_IDX + i) ^ 3] = (u08_t)c;
+        }
+    }
+
+    // Gerar Salt Lento Inicial (salt_start_idx até 53)
+    generate_safe_salt(template_bytes, salt_start_idx, SALT_END_IDX, NULL);
     update_static_simd_data(interleaved_data, master_template);
 
     u64_t salt_counter = 0;
@@ -190,8 +210,11 @@ void search_deti_coins_simd(const char *custom_text, u64_t max_attempts) {
     printf("DETI COIN MINER (64-BIT RANDOM ENGINE)\n");
     printf("SIMD: %s (x%d Lanes)\n", SIMD_NAME, SIMD_WIDTH);
     printf("Method: Fully Random ASCII (Infinite Cycle)\n");
+    printf("Custom Text Length: %d bytes\n", custom_len);
     printf("Bytes 12-19: Random (Every Loop)\n");
-    printf("Bytes 20-53: Random (Every %llu Loops)\n", (unsigned long long)SALT_UPDATE_INTERVAL);
+    printf("Bytes 20-%d: Custom Text (Fixed)\n", SALT_START_IDX + custom_len - 1);
+    printf("Bytes %d-53: Random (Every %llu Loops)\n", salt_start_idx, 
+           (unsigned long long)SALT_UPDATE_INTERVAL);
     printf("========================================\n");
 
     time_measurement();
@@ -200,9 +223,9 @@ void search_deti_coins_simd(const char *custom_text, u64_t max_attempts) {
 
     while(keep_running) {
         
-        // A. Atualizar Salt Lento (20-53) periodicamente
+        // A. Atualizar Salt Lento (salt_start_idx até 53) periodicamente
         if (salt_counter >= SALT_UPDATE_INTERVAL) {
-            generate_safe_salt(template_bytes, SALT_START_IDX, SALT_END_IDX, custom_text);
+            generate_safe_salt(template_bytes, salt_start_idx, SALT_END_IDX, NULL);
             update_static_simd_data(interleaved_data, master_template);
             salt_counter = 0;
         }
@@ -298,9 +321,7 @@ void search_deti_coins_simd(const char *custom_text, u64_t max_attempts) {
            (unsigned long long)total_attempts, total_time, (double)total_attempts/total_time/1e6);
     
     save_coin(NULL); 
-}
-
-int main(int argc, char *argv[]) {
+}int main(int argc, char *argv[]) {
     signal(SIGINT, signal_handler);
     
     // --- INICIALIZAÇÃO ROBUSTA DA SEED DE 64 BITS ---
