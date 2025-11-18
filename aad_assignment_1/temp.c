@@ -1,8 +1,16 @@
 //
-// DETI Coin Miner - CPU SIMD Implementation (AVX-512/AVX2/AVX/NEON)
-// Otimização Nível 2: OpenMP + Templates + Fast Check
+// DETI Coin Miner - OpenMP + CPU SIMD Implementation (Hybrid)
+// Strategy: Multi-threaded Workers + 64-bit LCG Random Generator
+// Layout:
+//   Bytes 00-11: Header ("DETI coin 2 ")
+//   Bytes 12-45: Custom Text + Slow Random Salt (Total 34 Bytes)
+//   Bytes 46-53: FAST RANDOM NONCE (8 Bytes, Updates every loop)
+//   Bytes 54-55: Footer (\n, 0x80)
+//
 // Arquiteturas de Alto Desempenho 2025/2026
 //
+
+#define _GNU_SOURCE
 #include <time.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -10,40 +18,38 @@
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>
-#include <omp.h> // <--- ADICIONADO PARA OPENMP
+#include <omp.h> // OpenMP Header
 
-// Adiciona o header para todos os intrinsics Intel (AVX, AVX2, AVX512)
-#if defined(__AVX__) || defined(__AVX2__) || defined(__AVX512F__)
-#include <immintrin.h>
-#endif
-
-#include "aad_data_types.h"
-#include "aad_utilities.h"
-#include "aad_sha1_cpu.h"
-#include "aad_vault.h"
-
-// Determine SIMD width at compile time
+// --- SIMD Setup ---
 #if defined(__AVX512F__)
+    #include <immintrin.h>
     #define SIMD_WIDTH 16
     #define SIMD_TYPE v16si
     #define SHA1_SIMD sha1_avx512f
     #define SIMD_NAME "AVX-512F"
 #elif defined(__AVX2__)
+    #include <immintrin.h>
     #define SIMD_WIDTH 8
     #define SIMD_TYPE v8si
     #define SHA1_SIMD sha1_avx2
     #define SIMD_NAME "AVX2"
 #elif defined(__AVX__)
+    #include <immintrin.h>
     #define SIMD_WIDTH 4
     #define SIMD_TYPE v4si
     #define SHA1_SIMD sha1_avx
     #define SIMD_NAME "AVX"
 #else
-    #error "No SIMD support detected. Compile with -mavx512f, -mavx2, -mavx"
+    #error "No compatible AVX support detected. Compile with -mavx512f, -mavx2, or -mavx."
 #endif
 
+// --- Headers AAD ---
+#include "aad_data_types.h"
+#include "aad_utilities.h"
+#include "aad_sha1_cpu.h"
+#include "aad_vault.h"
 
-// Macros para a otimização "Fast Check" (com casts corrigidos)
+// --- SIMD Macros ---
 #if defined(__AVX512F__)
     #define TARGET_HASH_TYPE    v16si
     #define TARGET_HASH_SET1(v) (v16si)_mm512_set1_epi32(v)
@@ -51,6 +57,7 @@
     #define TARGET_MASK_TYPE    __mmask16
     #define MASK_IS_ZERO(m)     (m == 0)
     #define MASK_TEST_LANE(m,i) (m & (1 << i))
+    #define SIMD_LOAD(ptr)      _mm512_load_si512((void*)ptr)
 #elif defined(__AVX2__)
     #define TARGET_HASH_TYPE    v8si
     #define TARGET_HASH_SET1(v) (v8si)_mm256_set1_epi32(v)
@@ -58,6 +65,7 @@
     #define TARGET_MASK_TYPE    int
     #define MASK_IS_ZERO(m)     (m == 0)
     #define MASK_TEST_LANE(m,i) (m & (1 << i))
+    #define SIMD_LOAD(ptr)      _mm256_load_si256((__m256i*)ptr)
 #elif defined(__AVX__)
     #define TARGET_HASH_TYPE    v4si
     #define TARGET_HASH_SET1(v) (v4si)_mm_set1_epi32(v)
@@ -65,406 +73,282 @@
     #define TARGET_MASK_TYPE    int
     #define MASK_IS_ZERO(m)     (m == 0)
     #define MASK_TEST_LANE(m,i) (m & (1 << i))
-#else
-    // NEON ou outro: Usa a verificação original (sem otimização de máscara)
-    // (Ainda não suportado neste OMP, mas a estrutura está aqui)
-    #define USE_FALLBACK_CHECK
+    #define SIMD_LOAD(ptr)      _mm_load_si128((__m128i*)ptr)
 #endif
 
+// --- Configuration ---
+#define SALT_UPDATE_INTERVAL 10000000000ULL // Aumentado ligeiramente para reduzir overhead
+#define SALT_START_IDX 12
+#define SLOW_SALT_END 45
+#define FAST_NONCE_START 46
+#define MAX_CUSTOM_LEN 34
 
-// Global variables for statistics and randomization
+// --- Globals ---
 static volatile int keep_running = 1;
-static u64_t total_attempts = 0;
+static u64_t global_total_attempts = 0; // Atomic update
 static u64_t total_coins_found = 0;
-static unsigned int global_seed = 0;
-static u64_t global_counter_offset = 0;
 
-// --- NOVOS GLOBAIS PARA TEMPLATES ---
-static u32_t template_message[14];
-static u32_t template_with_custom[14];
-static int template_initialized = 0;
-static int custom_template_initialized = 0;
-static int custom_text_length = 0;
-// --- FIM NOVOS GLOBAIS ---
-
-
-// Signal handler for graceful shutdown
 void signal_handler(int signum) {
     (void)signum;
     keep_running = 0;
-    printf("\n\nShutting down gracefully...\n");
+    #pragma omp flush(keep_running)
+    printf("\n\nShutting down...\n");
 }
 
-// Check if hash starts with 0xAAD20250
-static inline int is_valid_deti_coin(u32_t *hash) {
-    return (hash[0] == 0xAAD20250u);
-}
-
-// Count leading zero bits after the signature
 static inline u32_t count_coin_value(u32_t *hash) {
     u32_t n;
     for(n = 0; n < 128; n++) {
-        if (((hash[1 + n / 32] >> (31 - (n % 32))) & 1u) != 0u)
-            break;
+        if (((hash[1 + n / 32] >> (31 - (n % 32))) & 1u) != 0u) break;
     }
     return (n > 99) ? 99 : n;
 }
 
-
-// --- INÍCIO FUNÇÕES DE TEMPLATE (THREAD-SAFE PARA LEITURA) ---
-
-// Initialize base template (call once at start)
-static void init_template(void) {
-    if(template_initialized) return;
-    
-    memset(template_message, 0, 14 * sizeof(u32_t));
-    u08_t *bytes = (u08_t *)template_message;
-    const char header[] = "DETI coin 2 ";
-    
-    for(int i = 0; i < 12; i++) {
-        bytes[i ^ 3] = (u08_t)header[i];
-    }
-    bytes[54 ^ 3] = (u08_t)'\n';
-    bytes[55 ^ 3] = 0x80;
-    
-    template_initialized = 1;
-}
-
-// Initialize template with custom text (call once if custom text exists)
-static void init_custom_template(const char *custom_text) {
-    if(custom_template_initialized) return;
-    if(!template_initialized) init_template();
-    
-    memcpy(template_with_custom, template_message, 14 * sizeof(u32_t));
-    
-    u08_t *bytes = (u08_t *)template_with_custom;
-    int pos = 12;
-    
-    if(custom_text != NULL) {
-        for(size_t i = 0; custom_text[i] != '\0' && pos < 54; i++, pos++) {
-            char c = custom_text[i];
-            if(c == '\n') c = '\b';
-            bytes[pos ^ 3] = (u08_t)c;
-        }
-    }
-    
-    custom_text_length = pos - 12;
-    custom_template_initialized = 1;
-}
-
-// Generate message by copying template + filling random bytes
-// (Esta função é 100% thread-safe)
-static inline void generate_single_message_optimized(u32_t data[14], u64_t counter, int has_custom) {
-    // Copy appropriate template (with or without custom text)
-    if(has_custom) {
-        memcpy(data, template_with_custom, 14 * sizeof(u32_t));
-    } else {
-        memcpy(data, template_message, 14 * sizeof(u32_t));
-    }
-    
-    u08_t *bytes = (u08_t *)data;
-    int pos = 12 + (has_custom ? custom_text_length : 0);
-    
-    // Optimization: use counter as part of seed to vary messages
-    // (global_seed é lido de forma atómica aqui, o que é OK)
-    u64_t rng_state = global_seed ^ counter;
-    
-    // Single mixing step (sufficient for good randomness)
-    rng_state = 6364136223846793005ul * rng_state + 1442695040888963407ul;
-    
-    // Fill remaining positions with random bytes
-    while(pos < 54) {
-        rng_state = 6364136223846793005ul * rng_state + 1442695040888963407ul;
-        
-        u64_t temp = rng_state;
-        for(int j = 0; j < 8 && pos < 54; j++, pos++) {
-            u08_t b = (u08_t)((temp >> (j * 8)) & 0xFF);
-            b = 0x20 + (b % 0x5F); // Map to printable ASCII
-            bytes[pos ^ 3] = b;
-        }
-    }
-}
-// --- FIM FUNÇÕES DE TEMPLATE ---
-
-
-// Interleave SIMD_WIDTH messages into SIMD format
-static void interleave_messages(SIMD_TYPE *interleaved_data, u32_t messages[][14], int count) {
-    for(int word = 0; word < 14; word++) {
-        u32_t temp[SIMD_WIDTH];
-        
-        for(int lane = 0; lane < count; lane++) {
-            temp[lane] = messages[lane][word];
-        }
-        for(int lane = count; lane < SIMD_WIDTH; lane++) {
-            temp[lane] = 0;
-        }
-        
-#if defined(__AVX512F__)
-        interleaved_data[word] = (v16si){ temp[0],  temp[1],  temp[2],  temp[3],
-                                          temp[4],  temp[5],  temp[6],  temp[7],
-                                          temp[8],  temp[9],  temp[10], temp[11],
-                                          temp[12], temp[13], temp[14], temp[15] };
-#elif defined(__AVX2__)
-        interleaved_data[word] = (v8si){ temp[0], temp[1], temp[2], temp[3],
-                                         temp[4], temp[5], temp[6], temp[7] };
-#elif defined(__AVX__)
-        interleaved_data[word] = (v4si){ temp[0], temp[1], temp[2], temp[3] };
-#elif defined(__ARM_NEON)
-        interleaved_data[word] = (uint32x4_t){ temp[0], temp[1], temp[2], temp[3] };
-#endif
-    }
-}
-
-// Deinterleave SIMD results back to individual hashes
-static void deinterleave_hashes(u32_t hashes[][5], SIMD_TYPE *interleaved_hash, int count) {
+static void deinterleave_hashes(u32_t hashes[][5], SIMD_TYPE *interleaved_hash) {
     for(int word = 0; word < 5; word++) {
         u32_t *temp = (u32_t *)&interleaved_hash[word];
-        for(int lane = 0; lane < count; lane++) {
+        for(int lane = 0; lane < SIMD_WIDTH; lane++) {
             hashes[lane][word] = temp[lane];
         }
     }
 }
 
+static void update_static_simd_data(SIMD_TYPE *interleaved_data, u32_t *template_msg) {
+    u32_t temp_lane_buffer[SIMD_WIDTH] __attribute__((aligned(64)));
+    int static_words[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int num_static = sizeof(static_words) / sizeof(int);
 
-// Main SIMD search function
-// <--- FUNÇÃO PRINCIPAL MODIFICADA COM TEMPLATES E FAST-CHECK
-void search_deti_coins_simd(const char *custom_text, u64_t max_attempts) {
-
-    u64_t last_report = 0;
-    const u64_t report_interval = 1000000;
-    
-    // --- NOVO: Inicializa os templates UMA VEZ ---
-    init_template();
-    int has_custom = 0;
-    if(custom_text != NULL) {
-        init_custom_template(custom_text);
-        has_custom = 1;
+    for (int k = 0; k < num_static; k++) {
+        int w = static_words[k];
+        for (int lane = 0; lane < SIMD_WIDTH; lane++) {
+            temp_lane_buffer[lane] = template_msg[w];
+        }
+        interleaved_data[w] = (SIMD_TYPE)SIMD_LOAD(temp_lane_buffer);
     }
-    // --- FIM NOVO ---
+}
+
+// --- RANDOM GENERATOR (THREAD SAFE) ---
+// Agora recebe o estado (state) como ponteiro
+static void generate_safe_salt(u08_t *full_buffer, int start_idx, int end_idx, const char *custom_prefix, int prefix_len, u64_t *state) {
+    int current_logical = start_idx;
+    int prefix_pos = 0;
+
+    // 1. Custom Prefix
+    if (start_idx == SALT_START_IDX && custom_prefix != NULL) {
+        while (prefix_pos < prefix_len && current_logical <= end_idx) {
+            char c = custom_prefix[prefix_pos++];
+            if (c < 32 || c > 126) c = ' '; 
+            full_buffer[current_logical ^ 3] = (u08_t)c; 
+            current_logical++;
+        }
+    }
+
+    // 2. Random Fill (Using local state)
+    while (current_logical <= end_idx) {
+        *state = 6364136223846793005ULL * (*state) + 1442695040888963407ULL;
+        u08_t random_raw = (u08_t)((*state) >> 56);
+        u08_t ascii_char = 32 + (u08_t)((random_raw * 95) >> 8);
+        full_buffer[current_logical ^ 3] = ascii_char;
+        current_logical++;
+    }
+}
+
+// --- MINER MAIN (OPENMP) ---
+void search_deti_coins_openmp(const char *custom_text, u64_t max_attempts) {
     
+    // Check custom text length once
+    int custom_len = 0;
+    if (custom_text != NULL) {
+        size_t len = strlen(custom_text);
+        if (len > MAX_CUSTOM_LEN) {
+            printf("!!! WARNING: Text truncated to %d bytes !!!\n", MAX_CUSTOM_LEN);
+            custom_len = MAX_CUSTOM_LEN;
+        } else {
+            custom_len = (int)len;
+        }
+    }
+
     printf("========================================\n");
-    printf("DETI COIN MINER - CPU %s (SIMD x%d) - OpenMP (Optimized)\n", SIMD_NAME, SIMD_WIDTH);
+    printf("DETI COIN MINER (OPENMP HYBRID - END NONCE)\n");
+    printf("SIMD: %s (x%d Lanes)\n", SIMD_NAME, SIMD_WIDTH);
+    printf("Threads: %d (Auto-detected)\n", omp_get_max_threads());
+    printf("Layout: Header[0-11] | Salt[12-45] | Nonce[46-53] | Footer\n");
     printf("========================================\n");
-    printf("Global seed: 0x%08x\n", global_seed);
-    printf("Counter offset: %llu\n", (unsigned long long)global_counter_offset);
-    if(custom_text)
-        printf("Custom text: %s\n", custom_text);
-    printf("Press Ctrl+C to stop\n");
-    printf("========================================\n\n");
-    
+
     time_measurement();
     double start_time = measured_wall_time[1].tv_sec + measured_wall_time[1].tv_nsec * 1e-9;
-    
-    // <--- INÍCIO DA REGIÃO PARALELA ---
+    const TARGET_HASH_TYPE target_hash = TARGET_HASH_SET1(0xAAD20250u);
+
+    // --- PARALLEL REGION STARTS ---
     #pragma omp parallel
     {
-        // --- Variáveis Privadas da Thread ---
-        // Alinhamento é importante para performance SIMD
-        u32_t messages[SIMD_WIDTH][14] __attribute__((aligned(64)));
-        u32_t hashes[SIMD_WIDTH][5]   __attribute__((aligned(64)));
-        SIMD_TYPE interleaved_data[14] __attribute__((aligned(64)));
-        SIMD_TYPE interleaved_hash[5]  __attribute__((aligned(64)));
-        
-        // Obter informação da thread
+        // 1. Thread Local Variables & Buffers
         int tid = omp_get_thread_num();
-        int n_threads = omp_get_num_threads();
         
-        u64_t block_counter = (u64_t)tid;
+        // Initialize local RNG state: Time + Thread ID + Clock for entropy
+        u64_t thread_lcg_state = (u64_t)time(NULL) ^ ((u64_t)tid << 32) ^ (u64_t)clock();
+        // Warm up RNG
+        for(int k=0; k<10; k++) thread_lcg_state = 6364136223846793005ULL * thread_lcg_state + 1442695040888963407ULL;
 
-        // --- NOVO: Constante Fast-Check (privada para cada thread) ---
-        #ifndef USE_FALLBACK_CHECK
-        const TARGET_HASH_TYPE target_hash = TARGET_HASH_SET1(0xAAD20250u);
-        #endif
-        // --- FIM NOVO ---
+        SIMD_TYPE interleaved_data[14] __attribute__((aligned(64)));
+        SIMD_TYPE hash_result[5] __attribute__((aligned(64)));
+        u32_t hashes_deinterleaved[SIMD_WIDTH][5] __attribute__((aligned(64)));
+        
+        u32_t w11_buffer[SIMD_WIDTH] __attribute__((aligned(64)));
+        u32_t w12_buffer[SIMD_WIDTH] __attribute__((aligned(64)));
+        u32_t w13_buffer[SIMD_WIDTH] __attribute__((aligned(64)));
 
-        // --- Loop Principal da Thread ---
+        u32_t master_template[14];
+        u08_t *template_bytes = (u08_t *)master_template;
+        memset(master_template, 0, sizeof(master_template));
+
+        // Setup Template
+        const char header[] = "DETI coin 2 ";
+        for(int i = 0; i < 12; i++) template_bytes[i ^ 3] = (u08_t)header[i];
+        template_bytes[54 ^ 3] = '\n';
+        template_bytes[55 ^ 3] = 0x80;
+
+        // Initial Random Gen (Thread Local)
+        generate_safe_salt(template_bytes, SALT_START_IDX, SLOW_SALT_END, custom_text, custom_len, &thread_lcg_state);
+        update_static_simd_data(interleaved_data, master_template);
+
+        u64_t salt_counter = 0;
+        u64_t thread_attempts = 0; // Local counter
+        u64_t last_report_local = 0;
+        u08_t base_fast_nonce[8];
+
+        // Capture static bytes (local copy)
+        u08_t static_byte_44 = template_bytes[44 ^ 3];
+        u08_t static_byte_45 = template_bytes[45 ^ 3];
+        u08_t static_byte_54 = template_bytes[54 ^ 3]; 
+        u08_t static_byte_55 = template_bytes[55 ^ 3]; 
+
         while(keep_running) {
             
-            // 1. Condição de paragem (otimizada)
-            // (Apenas verifica o contador global periodicamente para reduzir o tráfego)
-            if (max_attempts > 0 && (block_counter % 1000 == 0)) {
-                u64_t current_total;
-                #pragma omp atomic read
-                current_total = total_attempts;
+            // Optional: Global Stop Condition
+            if (max_attempts > 0 && global_total_attempts >= max_attempts) break;
+
+            // A. Update Slow Salt
+            if (salt_counter >= SALT_UPDATE_INTERVAL) {
+                generate_safe_salt(template_bytes, SALT_START_IDX, SLOW_SALT_END, custom_text, custom_len, &thread_lcg_state);
+                update_static_simd_data(interleaved_data, master_template);
                 
-                if (current_total >= max_attempts) {
-                    keep_running = 0; 
-                    break;
-                }
+                static_byte_44 = template_bytes[44 ^ 3];
+                static_byte_45 = template_bytes[45 ^ 3];
+                salt_counter = 0;
             }
-            
-            // 2. Gerar ID de trabalho
-            u64_t counter_id_base = global_counter_offset + (block_counter * SIMD_WIDTH);
-            
-            // 3. --- MODIFICADO: Gerar mensagens com a função otimizada ---
-            for(int i = 0; i < SIMD_WIDTH; i++) {
-                generate_single_message_optimized(messages[i], 
-                                                 counter_id_base + (u64_t)i, 
-                                                 has_custom); // 'has_custom' é lida (read-only)
+
+            // B. Update Fast Nonce
+            generate_safe_salt(template_bytes, FAST_NONCE_START, FAST_NONCE_START + 7, NULL, 0, &thread_lcg_state);
+            for(int k=0; k<8; k++) base_fast_nonce[k] = template_bytes[(FAST_NONCE_START+k)^3];
+
+            // C. Distribute to Lanes
+            for (int i = 0; i < SIMD_WIDTH; i++) {
+                u08_t lane_nonce[8];
+                memcpy(lane_nonce, base_fast_nonce, 8);
+                
+                // Lane Variation
+                lane_nonce[7] = 32 + ((lane_nonce[7] - 32 + i) % 95);
+
+                // Word 11 (44, 45 Static | 46, 47 Nonce)
+                w11_buffer[i] = ((u32_t)static_byte_44 << 24) | ((u32_t)static_byte_45 << 16) | 
+                                ((u32_t)lane_nonce[0]  << 8)  | (u32_t)lane_nonce[1];
+
+                // Word 12 (48-51 Nonce)
+                w12_buffer[i] = ((u32_t)lane_nonce[2] << 24) | ((u32_t)lane_nonce[3] << 16) | 
+                                ((u32_t)lane_nonce[4] << 8)  | (u32_t)lane_nonce[5];
+
+                // Word 13 (52, 53 Nonce | 54, 55 Static)
+                w13_buffer[i] = ((u32_t)lane_nonce[6]  << 24) | ((u32_t)lane_nonce[7]  << 16) | 
+                                ((u32_t)static_byte_54 << 8)  | (u32_t)static_byte_55;
             }
-            
-            // 4. Processar (local)
-            interleave_messages(interleaved_data, messages, SIMD_WIDTH);
-            SHA1_SIMD(interleaved_data, interleaved_hash);
-            
-            // 5. --- MODIFICADO: Verificar com "Fast Check" ---
-            
-            #if defined(USE_FALLBACK_CHECK)
-            // --- CAMINHO FALLBACK (NEON) ---
-            deinterleave_hashes(hashes, interleaved_hash, SIMD_WIDTH);
-            for(int i = 0; i < SIMD_WIDTH; i++) {
-                if(is_valid_deti_coin(hashes[i])) {
-                    u32_t value = count_coin_value(hashes[i]);
-                    #pragma omp critical (print_and_save)
-                    {
-                        total_coins_found++;
-                        printf("\n>>> [T%d] COIN FOUND! Value=%u Counter=%llu\n", 
-                               tid, value, (unsigned long long)(counter_id_base + i));
-                        save_coin(messages[i]);
-                    }
-                }
-            }
-            
-            #else
-            // --- CAMINHO OTIMIZADO (AVX/AVX2/AVX512) ---
-            TARGET_MASK_TYPE mask = TARGET_HASH_CMP(interleaved_hash[0], target_hash);
-            
+
+            interleaved_data[11] = (SIMD_TYPE)SIMD_LOAD(w11_buffer);
+            interleaved_data[12] = (SIMD_TYPE)SIMD_LOAD(w12_buffer);
+            interleaved_data[13] = (SIMD_TYPE)SIMD_LOAD(w13_buffer);
+
+            SHA1_SIMD(interleaved_data, hash_result);
+
+            TARGET_MASK_TYPE mask = TARGET_HASH_CMP(hash_result[0], target_hash);
+
             if (!MASK_IS_ZERO(mask)) {
-                // CAMINHO LENTO (RARO): Moeda(s) encontrada(s)!
-                deinterleave_hashes(hashes, interleaved_hash, SIMD_WIDTH);
-                
+                deinterleave_hashes(hashes_deinterleaved, hash_result);
+
                 for(int i = 0; i < SIMD_WIDTH; i++) {
                     if (MASK_TEST_LANE(mask, i)) {
-                        u32_t value = count_coin_value(hashes[i]);
-                        
-                        // --- Secção Crítica ---
-                        #pragma omp critical (print_and_save)
+                        u32_t found_coin[14];
+                        memcpy(found_coin, master_template, sizeof(master_template));
+                        u08_t *coin_bytes = (u08_t *)found_coin;
+
+                        // Reconstruct winning nonce
+                        u08_t lane_nonce[8];
+                        memcpy(lane_nonce, base_fast_nonce, 8);
+                        lane_nonce[7] = 32 + ((lane_nonce[7] - 32 + i) % 95);
+
+                        for(int k=0; k<8; k++) coin_bytes[(FAST_NONCE_START+k)^3] = lane_nonce[k];
+
+                        // CRITICAL SECTION: I/O
+                        #pragma omp critical
                         {
-                            total_coins_found++; 
-                            // Impressão minimalista para reduzir contenção
-                            printf("\n>>> [T%d] COIN FOUND! Value=%u Counter=%llu\n", 
-                                   tid, value, (unsigned long long)(counter_id_base + i));
-                            save_coin(messages[i]);
+                            save_coin(found_coin);
+                            total_coins_found++;
+                            u32_t val = count_coin_value(hashes_deinterleaved[i]);
+                            char ns[9]; memcpy(ns, lane_nonce, 8); ns[8]=0;
+                            printf("\n[T%d][HIT] Val: %u | Nonce(46-53): \"%s\"\n", tid, val, ns);
                         }
                     }
                 }
             }
-            // (Caminho rápido, 99.999% das vezes, não faz nada)
-            #endif
-            
-            // 6. Atualizar contadores globais
-            #pragma omp atomic update
-            total_attempts += SIMD_WIDTH;
-            
-            // Avança para o próximo bloco de trabalho desta thread
-            block_counter += (u64_t)n_threads;
-            
-            
-            // 7. Reportar (apenas a thread master)
-            #pragma omp master
-            {
-                // Lê o total global (não precisa ser 100% exato,
-                // por isso podemos ler fora de um 'atomic read' para performance,
-                // mas vamos manter o 'atomic read' por segurança)
-                u64_t current_total;
-                #pragma omp atomic read
-                current_total = total_attempts;
 
-                if(current_total - last_report >= report_interval) {
-                    last_report += report_interval; 
-                    
-                    u64_t current_coins;
-                    #pragma omp atomic read
-                    current_coins = total_coins_found;
-                    
+            thread_attempts += SIMD_WIDTH;
+            salt_counter += SIMD_WIDTH;
+
+            // Reporting Logic (Thread 0 only updates display)
+            if ((thread_attempts - last_report_local) >= 1000000000) {
+                #pragma omp atomic
+                global_total_attempts += (thread_attempts - last_report_local);
+                
+                last_report_local = thread_attempts;
+
+                if (tid == 0) {
                     time_measurement();
                     double elapsed = measured_wall_time[1].tv_sec + measured_wall_time[1].tv_nsec * 1e-9 - start_time;
-                    double rate = (double)current_total / elapsed;
+                    double mhash = (double)global_total_attempts / elapsed / 1000000.0;
                     
-                    printf("\r[%llu attempts] [%llu coins] [%.2f MH/s]          ",
-                           (unsigned long long)current_total,
-                           (unsigned long long)current_coins,
-                           rate / 1e6);
+                    printf("\rAttempts: %llu | Found: %llu | Speed: %.2f MH/s (Aggregated)  ", 
+                        (unsigned long long)global_total_attempts, 
+                        (unsigned long long)total_coins_found, 
+                        mhash);
                     fflush(stdout);
                 }
             }
-            
-        } // --- Fim do while(keep_running) ---
-        
-    } // --- Fim da região paralela ---
-    
-    
-    // Final statistics
+
+        } // End While
+
+        // Flush remaining attempts
+        #pragma omp atomic
+        global_total_attempts += (thread_attempts - last_report_local);
+
+    } // --- END PARALLEL REGION ---
+
     time_measurement();
-    double end_time = measured_wall_time[1].tv_sec + measured_wall_time[1].tv_nsec * 1e-9;
-    double total_time = end_time - start_time;
+    double total_time = (measured_wall_time[1].tv_sec + measured_wall_time[1].tv_nsec * 1e-9) - start_time;
+    printf("\n\n--- Finished ---\nTotal Attempts: %llu\nTotal Time: %.2fs\nAvg Speed: %.2f MH/s\n", 
+           (unsigned long long)global_total_attempts, total_time, (double)global_total_attempts/total_time/1e6);
     
-    printf("\n\n========================================\n");
-    printf("FINAL STATISTICS\n");
-    printf("========================================\n");
-    printf("Total attempts: %llu\n", (unsigned long long)total_attempts);
-    printf("Total coins found: %llu\n", (unsigned long long)total_coins_found);
-    printf("Total time: %.2f seconds\n", total_time);
-    printf("Average rate: %.2f million hashes/second\n", (double)total_attempts / total_time / 1e6);
-    if(total_coins_found > 0)
-        printf("Average time per coin: %.2f seconds\n", total_time / total_coins_found);
-    
-    printf("SIMD width: %d (%s) x %d Threads (OpenMP)\n", SIMD_WIDTH, SIMD_NAME, omp_get_max_threads());
-    printf("========================================\n");
-    
-    save_coin(NULL);
+    save_coin(NULL); 
 }
 
-// Main program (sem alterações)
 int main(int argc, char *argv[]) {
     signal(SIGINT, signal_handler);
     
-    // Initialize global PRNG seed with maximum entropy
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    
-    global_seed = (unsigned int)(time(NULL) ^ 
-                                 (uintptr_t)&global_seed ^ 
-                                 (unsigned int)getpid() ^
-                                 (unsigned int)ts.tv_nsec);
-    
-    // Mix the seed thoroughly
-    for(int i = 0; i < 10; i++) {
-        rand_r(&global_seed);
-    }
-    
-    // Generate random counter offset so each run explores different space
-    global_counter_offset = ((u64_t)rand_r(&global_seed) << 32) | 
-                           (u64_t)rand_r(&global_seed);
-    
-    // Add more entropy from high-resolution timer
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    global_counter_offset ^= ((u64_t)ts.tv_nsec << 32) | (u64_t)ts.tv_sec;
+    // Note: Initial RNG seed is now generated inside the parallel region per thread
     
     const char *custom_text = NULL;
     u64_t max_attempts = 0;
     
-    // Parse command line arguments
-    if(argc > 1)
-        custom_text = argv[1];
-    if(argc > 2)
-        max_attempts = strtoull(argv[2], NULL, 10);
+    if(argc > 1) custom_text = argv[1];
+    if(argc > 2) max_attempts = strtoull(argv[2], NULL, 10);
     
-    // Sanitize custom text (replace newlines with backspace)
-    char sanitized_text[64];
-    if(custom_text != NULL) {
-        size_t si = 0;
-        for(size_t i = 0; custom_text[i] != '\0' && si + 1 < sizeof(sanitized_text); i++) {
-            if(custom_text[i] == '\n')
-                sanitized_text[si++] = '\b';
-            else
-                sanitized_text[si++] = custom_text[i];
-        }
-        sanitized_text[si] = '\0';
-        search_deti_coins_simd(sanitized_text, max_attempts);
-    } else {
-        search_deti_coins_simd(NULL, max_attempts);
-    }
-    
+    search_deti_coins_openmp(custom_text, max_attempts);
     return 0;
 }
