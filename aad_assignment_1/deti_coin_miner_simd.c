@@ -1,8 +1,11 @@
 //
 // DETI Coin Miner - CPU SIMD Implementation
-// Strategy: 64-bit LCG Random Generator (Infinite Cycle) + Fast ASCII Mapping
-// Bytes 12-19: Random Update Every Loop
-// Bytes 20-53: Random Update Every X Loops
+// Strategy: 64-bit LCG Random Generator
+// Layout:
+//   Bytes 00-11: Header ("DETI coin 2 ")
+//   Bytes 12-45: Custom Text + Slow Random Salt (Total 34 Bytes)
+//   Bytes 46-53: FAST RANDOM NONCE (8 Bytes, Updates every loop)
+//   Bytes 54-55: Footer (\n, 0x80)
 //
 // Arquiteturas de Alto Desempenho 2025/2026
 //
@@ -73,18 +76,19 @@
 #endif
 
 // --- Configuration ---
-// Safe interval now that we use 64-bit generator.
-// Even 10 Billion (10000000000ULL) is safe now.
-#define SALT_UPDATE_INTERVAL 15000000000ULL 
-#define SALT_START_IDX 20
-#define SALT_END_IDX   53
+#define SALT_UPDATE_INTERVAL 1000ULL 
+#define SALT_START_IDX 12
+#define SLOW_SALT_END 45
+#define FAST_NONCE_START 46
+
+// CHECK: O tamanho máximo do texto customizado é (45 - 12 + 1) = 34 Bytes
+#define MAX_CUSTOM_LEN 34
 
 // --- Globals ---
 static volatile int keep_running = 1;
 static u64_t total_attempts = 0;
 static u64_t total_coins_found = 0;
 
-// O ESTADO DO GERADOR DE 64-BITS (CRUCIAL PARA NÃO REPETIR)
 static u64_t lcg_state = 0; 
 
 void signal_handler(int signum) {
@@ -110,10 +114,9 @@ static void deinterleave_hashes(u32_t hashes[][5], SIMD_TYPE *interleaved_hash) 
     }
 }
 
-// Carrega as partes estáticas para registos SIMD
 static void update_static_simd_data(SIMD_TYPE *interleaved_data, u32_t *template_msg) {
     u32_t temp_lane_buffer[SIMD_WIDTH] __attribute__((aligned(64)));
-    int static_words[] = {0, 1, 2, 5, 6, 7, 8, 9, 10, 11, 12, 13};
+    int static_words[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     int num_static = sizeof(static_words) / sizeof(int);
 
     for (int k = 0; k < num_static; k++) {
@@ -125,60 +128,73 @@ static void update_static_simd_data(SIMD_TYPE *interleaved_data, u32_t *template
     }
 }
 
-// --- GERADOR DE SALT OTIMIZADO (64-bit LCG + Fast ASCII) ---
-// Implementa a lógica do código antigo para evitar repetições
-static void generate_safe_salt(u08_t *full_buffer, int start_idx, int end_idx, const char *custom_prefix) {
+// --- RANDOM GENERATOR ---
+// Alterado: Agora aceita 'prefix_len' explicitamente para evitar strlen repetido e respeitar limites
+static void generate_safe_salt(u08_t *full_buffer, int start_idx, int end_idx, const char *custom_prefix, int prefix_len) {
     int current_logical = start_idx;
-    int prefix_len = (custom_prefix != NULL) ? strlen(custom_prefix) : 0;
     int prefix_pos = 0;
 
-    // 1. Prefixo Customizado
-    while (prefix_pos < prefix_len && current_logical <= end_idx) {
-        char c = custom_prefix[prefix_pos++];
-        if (c < 32 || c > 126) c = ' '; 
-        full_buffer[current_logical ^ 3] = (u08_t)c; 
-        current_logical++;
+    // 1. Custom Prefix (Only applies if start_idx matches prefix start logic)
+    if (start_idx == SALT_START_IDX && custom_prefix != NULL) {
+        while (prefix_pos < prefix_len && current_logical <= end_idx) {
+            char c = custom_prefix[prefix_pos++];
+            if (c < 32 || c > 126) c = ' '; 
+            full_buffer[current_logical ^ 3] = (u08_t)c; 
+            current_logical++;
+        }
     }
 
-    // 2. Preenchimento Aleatório (Motor de 64-bits)
+    // 2. Random Fill
     while (current_logical <= end_idx) {
-        // Avançar estado LCG (Knuth parameters)
         lcg_state = 6364136223846793005ULL * lcg_state + 1442695040888963407ULL;
-        
-        // Usar o byte mais alto para melhor entropia
         u08_t random_raw = (u08_t)(lcg_state >> 56);
-
-        // Mapeamento rápido para 32..126 sem usar divisão (%)
-        // Fórmula: 32 + floor(random * 95 / 256)
         u08_t ascii_char = 32 + (u08_t)((random_raw * 95) >> 8);
-        
         full_buffer[current_logical ^ 3] = ascii_char;
         current_logical++;
     }
 }
 
-// --- MINER PRINCIPAL ---
+// --- MINER MAIN ---
 void search_deti_coins_simd(const char *custom_text, u64_t max_attempts) {
-    // Buffers Alinhados
+    // Buffers
     SIMD_TYPE interleaved_data[14] __attribute__((aligned(64)));
     SIMD_TYPE hash_result[5] __attribute__((aligned(64)));
     u32_t hashes_deinterleaved[SIMD_WIDTH][5] __attribute__((aligned(64)));
     
-    u32_t counter_w3_buffer[SIMD_WIDTH] __attribute__((aligned(64)));
-    u32_t counter_w4_buffer[SIMD_WIDTH] __attribute__((aligned(64)));
+    u32_t w11_buffer[SIMD_WIDTH] __attribute__((aligned(64)));
+    u32_t w12_buffer[SIMD_WIDTH] __attribute__((aligned(64)));
+    u32_t w13_buffer[SIMD_WIDTH] __attribute__((aligned(64)));
 
     u32_t master_template[14];
     u08_t *template_bytes = (u08_t *)master_template;
     memset(master_template, 0, sizeof(master_template));
 
-    // Header Fixo
+    // Header
     const char header[] = "DETI coin 2 ";
     for(int i = 0; i < 12; i++) template_bytes[i ^ 3] = (u08_t)header[i];
+    
+    // Footer
     template_bytes[54 ^ 3] = '\n';
     template_bytes[55 ^ 3] = 0x80;
 
-    // Gerar Salt Lento Inicial (20-53)
-    generate_safe_salt(template_bytes, SALT_START_IDX, SALT_END_IDX, custom_text);
+    // --- CHECK CUSTOM TEXT SIZE ---
+    int custom_len = 0;
+    if (custom_text != NULL) {
+        size_t len = strlen(custom_text);
+        if (len > MAX_CUSTOM_LEN) {
+            printf("!!! WARNING !!!\n");
+            printf("Custom text (%zu bytes) exceeds the variable template size (%d bytes).\n", len, MAX_CUSTOM_LEN);
+            printf("Text will be truncated to fit.\n");
+            printf("!!! WARNING !!!\n\n");
+            custom_len = MAX_CUSTOM_LEN;
+        } else {
+            custom_len = (int)len;
+        }
+    }
+
+    // Initial Random Generation
+    generate_safe_salt(template_bytes, SALT_START_IDX, SLOW_SALT_END, custom_text, custom_len);
+    
     update_static_simd_data(interleaved_data, master_template);
 
     u64_t salt_counter = 0;
@@ -187,62 +203,74 @@ void search_deti_coins_simd(const char *custom_text, u64_t max_attempts) {
     u08_t base_fast_nonce[8];
 
     printf("========================================\n");
-    printf("DETI COIN MINER (64-BIT RANDOM ENGINE)\n");
+    printf("DETI COIN MINER (END-OF-MESSAGE NONCE)\n");
     printf("SIMD: %s (x%d Lanes)\n", SIMD_NAME, SIMD_WIDTH);
-    printf("Method: Fully Random ASCII (Infinite Cycle)\n");
-    printf("Bytes 12-19: Random (Every Loop)\n");
-    printf("Bytes 20-53: Random (Every %llu Loops)\n", (unsigned long long)SALT_UPDATE_INTERVAL);
+    printf("Bytes 00-11: Header\n");
+    printf("Bytes 12-45: Custom + Slow Random (Max %d Bytes)\n", MAX_CUSTOM_LEN);
+    printf("Bytes 46-53: Fast Random Nonce (Update every Loop)\n");
+    printf("Bytes 54-55: Footer (\\n, 0x80)\n");
     printf("========================================\n");
 
     time_measurement();
     double start_time = measured_wall_time[1].tv_sec + measured_wall_time[1].tv_nsec * 1e-9;
     const TARGET_HASH_TYPE target_hash = TARGET_HASH_SET1(0xAAD20250u);
 
+    u08_t static_byte_44 = template_bytes[44 ^ 3];
+    u08_t static_byte_45 = template_bytes[45 ^ 3];
+    u08_t static_byte_54 = template_bytes[54 ^ 3]; // '\n'
+    u08_t static_byte_55 = template_bytes[55 ^ 3]; // 0x80
+
     while(keep_running) {
         
-        // A. Atualizar Salt Lento (20-53) periodicamente
+        // A. Update Slow Salt Periodically
         if (salt_counter >= SALT_UPDATE_INTERVAL) {
-            generate_safe_salt(template_bytes, SALT_START_IDX, SALT_END_IDX, custom_text);
+            generate_safe_salt(template_bytes, SALT_START_IDX, SLOW_SALT_END, custom_text, custom_len);
             update_static_simd_data(interleaved_data, master_template);
+            
+            static_byte_44 = template_bytes[44 ^ 3];
+            static_byte_45 = template_bytes[45 ^ 3];
+            
             salt_counter = 0;
         }
 
-        // B. Atualizar Fast Nonce (12-19) A CADA LOOP
-        // Usa o gerador 64-bit, garantindo que não repetimos
-        generate_safe_salt(template_bytes, 12, 19, NULL);
-        
-        // Copiar para buffer local (leitura lógica dos bytes 12-19)
-        for(int k=0; k<8; k++) base_fast_nonce[k] = template_bytes[(12+k)^3];
+        // B. Update Fast Nonce (Bytes 46-53)
+        // Pass NULL and 0 len since this is purely random generation
+        generate_safe_salt(template_bytes, FAST_NONCE_START, FAST_NONCE_START + 7, NULL, 0);
+        for(int k=0; k<8; k++) base_fast_nonce[k] = template_bytes[(FAST_NONCE_START+k)^3];
 
-        // C. Distribuir pelas Lanes SIMD
+        // C. Distribute to Lanes
         for (int i = 0; i < SIMD_WIDTH; i++) {
             u08_t lane_nonce[8];
             memcpy(lane_nonce, base_fast_nonce, 8);
-
-            // Offset por lane no último byte (ASCII Wrap)
-            // Mantém no intervalo 32-126
+            
+            // Lane Variation
             lane_nonce[7] = 32 + ((lane_nonce[7] - 32 + i) % 95);
 
-            // Pack para W3 (Bytes 12-15)
-            counter_w3_buffer[i] = ((u32_t)lane_nonce[0] << 24) | 
-                                   ((u32_t)lane_nonce[1] << 16) | 
-                                   ((u32_t)lane_nonce[2] << 8)  | 
-                                   (u32_t)lane_nonce[3];
+            // Word 11 (44, 45 Static | 46, 47 Nonce)
+            w11_buffer[i] = ((u32_t)static_byte_44 << 24) | 
+                            ((u32_t)static_byte_45 << 16) | 
+                            ((u32_t)lane_nonce[0]  << 8)  | 
+                            (u32_t)lane_nonce[1];
 
-            // Pack para W4 (Bytes 16-19)
-            counter_w4_buffer[i] = ((u32_t)lane_nonce[4] << 24) | 
-                                   ((u32_t)lane_nonce[5] << 16) | 
-                                   ((u32_t)lane_nonce[6] << 8)  | 
-                                   (u32_t)lane_nonce[7];
+            // Word 12 (48-51 Nonce)
+            w12_buffer[i] = ((u32_t)lane_nonce[2] << 24) | 
+                            ((u32_t)lane_nonce[3] << 16) | 
+                            ((u32_t)lane_nonce[4] << 8)  | 
+                            (u32_t)lane_nonce[5];
+
+            // Word 13 (52, 53 Nonce | 54, 55 Static)
+            w13_buffer[i] = ((u32_t)lane_nonce[6]  << 24) | 
+                            ((u32_t)lane_nonce[7]  << 16) | 
+                            ((u32_t)static_byte_54 << 8)  | 
+                            (u32_t)static_byte_55;
         }
 
-        // D. Load & Hash
-        interleaved_data[3] = (SIMD_TYPE)SIMD_LOAD(counter_w3_buffer);
-        interleaved_data[4] = (SIMD_TYPE)SIMD_LOAD(counter_w4_buffer);
+        interleaved_data[11] = (SIMD_TYPE)SIMD_LOAD(w11_buffer);
+        interleaved_data[12] = (SIMD_TYPE)SIMD_LOAD(w12_buffer);
+        interleaved_data[13] = (SIMD_TYPE)SIMD_LOAD(w13_buffer);
 
         SHA1_SIMD(interleaved_data, hash_result);
 
-        // E. Check
         TARGET_MASK_TYPE mask = TARGET_HASH_CMP(hash_result[0], target_hash);
 
         if (!MASK_IS_ZERO(mask)) {
@@ -254,19 +282,18 @@ void search_deti_coins_simd(const char *custom_text, u64_t max_attempts) {
                     memcpy(found_coin, master_template, sizeof(master_template));
                     u08_t *coin_bytes = (u08_t *)found_coin;
 
-                    // Recriar o nonce da lane vencedora
                     u08_t lane_nonce[8];
                     memcpy(lane_nonce, base_fast_nonce, 8);
                     lane_nonce[7] = 32 + ((lane_nonce[7] - 32 + i) % 95);
 
-                    for(int k=0; k<8; k++) coin_bytes[(12+k)^3] = lane_nonce[k];
+                    for(int k=0; k<8; k++) coin_bytes[(FAST_NONCE_START+k)^3] = lane_nonce[k];
 
                     save_coin(found_coin);
                     total_coins_found++;
                     
                     u32_t val = count_coin_value(hashes_deinterleaved[i]);
                     char ns[9]; memcpy(ns, lane_nonce, 8); ns[8]=0;
-                    printf("\n[HIT] Val: %u | Nonce: \"%s\"\n", val, ns);
+                    printf("\n[HIT] Val: %u | Nonce(46-53): \"%s\"\n", val, ns);
                 }
             }
         }
@@ -275,7 +302,6 @@ void search_deti_coins_simd(const char *custom_text, u64_t max_attempts) {
         salt_counter += SIMD_WIDTH;
         total_attempts += SIMD_WIDTH;
 
-        // Report
         if ((local_counter - last_report) >= 20000000) {
             time_measurement();
             double elapsed = measured_wall_time[1].tv_sec + measured_wall_time[1].tv_nsec * 1e-9 - start_time;
@@ -303,16 +329,12 @@ void search_deti_coins_simd(const char *custom_text, u64_t max_attempts) {
 int main(int argc, char *argv[]) {
     signal(SIGINT, signal_handler);
     
-    // --- INICIALIZAÇÃO ROBUSTA DA SEED DE 64 BITS ---
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    
-    // Mistura bits do tempo, PID e nanosegundos para entropia máxima
     u64_t seed_part1 = (u64_t)time(NULL);
     u64_t seed_part2 = (u64_t)ts.tv_nsec ^ (u64_t)getpid();
     lcg_state = (seed_part1 << 32) | seed_part2;
 
-    // Aquecer o gerador (descartar primeiros valores)
     for(int i=0; i<10; i++) {
         lcg_state = 6364136223846793005ULL * lcg_state + 1442695040888963407ULL;
     }
