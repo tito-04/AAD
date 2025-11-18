@@ -205,9 +205,10 @@ void search_deti_coins_simd(const char *custom_text, u64_t max_attempts) {
     printf("========================================\n");
     printf("DETI COIN MINER (END-OF-MESSAGE NONCE)\n");
     printf("SIMD: %s (x%d Lanes)\n", SIMD_NAME, SIMD_WIDTH);
-    printf("Method: Fully Random ASCII (Infinite Cycle)\n");
-    printf("Bytes 12-19: Random (Every Loop)\n");
-    printf("Bytes 20-53: Random (Every %llu Loops)\n", (unsigned long long)SALT_UPDATE_INTERVAL);
+    printf("Bytes 00-11: Header\n");
+    printf("Bytes 12-45: Custom + Slow Random (Max %d Bytes)\n", MAX_CUSTOM_LEN);
+    printf("Bytes 46-53: Fast Random Nonce (Update every Loop)\n");
+    printf("Bytes 54-55: Footer (\\n, 0x80)\n");
     printf("========================================\n");
 
     time_measurement();
@@ -221,9 +222,9 @@ void search_deti_coins_simd(const char *custom_text, u64_t max_attempts) {
 
     while(keep_running) {
         
-        // A. Atualizar Salt Lento (20-53) periodicamente
+        // A. Update Slow Salt Periodically
         if (salt_counter >= SALT_UPDATE_INTERVAL) {
-            generate_safe_salt(template_bytes, SALT_START_IDX, SALT_END_IDX, custom_text);
+            generate_safe_salt(template_bytes, SALT_START_IDX, SLOW_SALT_END, custom_text, custom_len);
             update_static_simd_data(interleaved_data, master_template);
             
             static_byte_44 = template_bytes[44 ^ 3];
@@ -323,7 +324,9 @@ void search_deti_coins_simd(const char *custom_text, u64_t max_attempts) {
            (unsigned long long)total_attempts, total_time, (double)total_attempts/total_time/1e6);
     
     save_coin(NULL); 
-}int main(int argc, char *argv[]) {
+}
+
+int main(int argc, char *argv[]) {
     signal(SIGINT, signal_handler);
     
     struct timespec ts;
