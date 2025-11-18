@@ -1,104 +1,81 @@
 //
 // Ficheiro: miner_kernel.cu
 //
-// Kernel CUDA de mineração de DETI coins de alto desempenho.
-//
-// Arquitetura:
-// 1. O host (CPU) envia um "template" da mensagem (com ou sem texto custom)
-//    para a memória da GPU (buffer 0).
-// 2. O host (CPU) envia um contador "base_counter" (u64_t).
-// 3. Cada thread da GPU calcula um ID global único (n).
-// 4. Cada thread combina o ID (n) com o base_counter para criar um contador único.
-// 5. Cada thread copia o template para a sua memória local (registos).
-// 6. Cada thread preenche o resto da sua mensagem local usando um PRNG
-//    semeado com o seu contador único.
-// 7. Cada thread calcula o hash SHA-1 (usando a macro).
-// 8. Se (hash[0] == 0xAAD20250u), a thread usa atomicAdd() no
-//    buffer de resultados (buffer 1) para reservar espaço e
-//    guardar a moeda encontrada.
+// Ajuste de Launch Bounds para Block Size = 256
 //
 
-#include "aad_sha1.h"       // Para CUSTOM_SHA1_CODE
-#include "aad_data_types.h" // Para u32_t, u64_t
+#include "aad_sha1.h"       
+#include "aad_data_types.h" 
 
-__constant__ u32_t c_template_message[14]; // Template da mensagem (constante na GPU)
-
-// PRNG (LCG) adaptado de aad_utilities.h para correr na GPU.
-// É uma função __device__ para ser chamada por cada thread.
-static __device__ inline u64_t lcg_rand(u64_t state)
+static __device__ __forceinline__ u64_t lcg_rand(u64_t state)
 {
   return 6364136223846793005ul * state + 1442695040888963407ul;
 }
 
-// O Kernel de Mineração
-extern "C" __global__ __launch_bounds__(RECOMENDED_CUDA_BLOCK_SIZE,1)
+// Alterado para 256 threads por bloco
+extern "C" __global__ __launch_bounds__(256, 2) 
 void miner_kernel(
-    u64_t base_counter,           // Contador base para este lançamento
-    u32_t *coins_storage_area,    // Buffer de resultados (o "vault" da GPU)
-    int start_pos                 // Posição onde o PRNG deve começar a escrever
+    u64_t base_counter,           
+    u32_t *coins_storage_area,    
+    const u32_t *__restrict__ template_msg 
 )
 {
-    // --- 1. Calcular ID Único ---
-    u64_t n = (u64_t)threadIdx.x + (u64_t)blockDim.x * (u64_t)blockIdx.x;
-    u64_t thread_counter = base_counter + n;
+    u64_t thread_counter = base_counter + (u64_t)threadIdx.x + (u64_t)blockDim.x * (u64_t)blockIdx.x;
 
-    // --- 2. Declarar Buffers Locais (irão para os registos) ---
-    u32_t data[14]; // A mensagem (AoS)
-    u32_t hash[5];  // O hash (AoS)
+    u32_t data[14];
+    u32_t hash[5];
 
-    // --- 3. Gerar Mensagem "On The Fly" ---
-    
-    // Copiar o template (header, custom text, \n, 0x80)
+    // 1. Carregar Parte Estática (Words 0-10 -> Bytes 0-43)
     #pragma unroll
-    for(int i = 0; i < 14; i++)
-    {
-        data[i] = c_template_message[i];
+    for(int i = 0; i < 11; i++) {
+        data[i] = template_msg[i];
     }
 
-    // Obter um ponteiro de bytes para preencher a parte aleatória
-    u08_t *bytes = (u08_t *)data;
-    int pos = start_pos;
+    // 2. Gerar Fast Nonce (8 Bytes: 46-53)
+    u64_t rng = lcg_rand(thread_counter);
 
-    // Iniciar o LCG com o contador único
-    u64_t rng_state = lcg_rand(thread_counter);
+    u32_t b46 = (u32_t)(rng & 0xFF);         b46 = 0x20 + ((b46 * 95) >> 8);
+    u32_t b47 = (u32_t)((rng >> 8) & 0xFF);  b47 = 0x20 + ((b47 * 95) >> 8);
+    u32_t b48 = (u32_t)((rng >> 16) & 0xFF); b48 = 0x20 + ((b48 * 95) >> 8);
+    u32_t b49 = (u32_t)((rng >> 24) & 0xFF); b49 = 0x20 + ((b49 * 95) >> 8);
+    u32_t b50 = (u32_t)((rng >> 32) & 0xFF); b50 = 0x20 + ((b50 * 95) >> 8);
+    u32_t b51 = (u32_t)((rng >> 40) & 0xFF); b51 = 0x20 + ((b51 * 95) >> 8);
+    u32_t b52 = (u32_t)((rng >> 48) & 0xFF); b52 = 0x20 + ((b52 * 95) >> 8);
+    u32_t b53 = (u32_t)((rng >> 56) & 0xFF); b53 = 0x20 + ((b53 * 95) >> 8);
 
-    // Preencher a parte aleatória
-    while(pos < 54)
-    {
-        rng_state = lcg_rand(rng_state);
-        u64_t temp = rng_state;
+    // 3. Construir Word 11 (Bytes 44-47)
+    u32_t w11_static = template_msg[11] & 0xFFFF0000u; // Mantém byte 44 e 45
+    data[11] = w11_static | (b46 << 8) | b47;
 
-        for(int j = 0; j < 8 && pos < 54; j++, pos++)
-        {
-            u08_t b = (u08_t)((temp >> (j * 8)) & 0xFF);
-            b = 0x20 + (u08_t)((b * 95) >> 8); // Converter para ASCII imprimível
-            bytes[pos ^ 3] = b; // `^ 3` para a correção de endianness
-        }
-    }
+    // 4. Construir Word 12 (Bytes 48-51)
+    data[12] = (b48 << 24) | (b49 << 16) | (b50 << 8) | b51;
 
-    // --- 4. Calcular o Hash SHA-1 ---
-    // Definir as macros que CUSTOM_SHA1_CODE espera
+    // 5. Construir Word 13 (Bytes 52-55)
+    u32_t w13_static = template_msg[13] & 0x0000FFFFu; // Mantém byte 54 e 55
+    data[13] = (b52 << 24) | (b53 << 16) | w13_static;
+
+
+    // --- SHA-1 HASH ---
     #define T            u32_t
     #define C(c)         (c)
     #define ROTATE(x,n)  (((x) << (n)) | ((x) >> (32 - (n))))
-    #define DATA(idx)    data[idx] // Aceder ao array local
-    #define HASH(idx)    hash[idx] // Aceder ao array local
+    #define DATA(idx)    data[idx]
+    #define HASH(idx)    hash[idx]
 
-    CUSTOM_SHA1_CODE(); // O "motor" de hash
+    CUSTOM_SHA1_CODE(); 
 
-    // Limpar as macros
     #undef T
     #undef C
     #undef ROTATE
     #undef DATA
     #undef HASH
 
-    // --- 5. Verificar e Guardar a Moeda ---
+    // --- Verificação ---
     if(hash[0] == 0xAAD20250u)
     {
-        // Encontrámos uma moeda!
         u32_t idx = atomicAdd(&coins_storage_area[0], 14u);
-        if(idx < 1010u) // 1024 - 14 = 1010
+        
+        if(idx < (1024u - 14u)) 
         {
             #pragma unroll
             for(int i = 0; i < 14; i++)
