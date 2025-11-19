@@ -1,7 +1,7 @@
 //
-// Ficheiro: miner_kernel.cu
+// Ficheiro: miner_kernel.cu (CORRIGIDO: CÃ¡lculo SHA1 Funcional)
 //
-// Ajuste de Launch Bounds para Block Size = 256
+// Optimized DETI Coin Miner Kernel
 //
 
 #include "aad_sha1.h"       
@@ -12,8 +12,7 @@ static __device__ __forceinline__ u64_t lcg_rand(u64_t state)
   return 6364136223846793005ul * state + 1442695040888963407ul;
 }
 
-// Alterado para 256 threads por bloco
-extern "C" __global__ __launch_bounds__(256, 2) 
+extern "C" __global__ __launch_bounds__(RECOMENDED_CUDA_BLOCK_SIZE, 4)
 void miner_kernel(
     u64_t base_counter,           
     u32_t *coins_storage_area,    
@@ -25,13 +24,11 @@ void miner_kernel(
     u32_t data[14];
     u32_t hash[5];
 
-    // 1. Carregar Parte Estática (Words 0-10 -> Bytes 0-43)
     #pragma unroll
     for(int i = 0; i < 11; i++) {
         data[i] = template_msg[i];
     }
 
-    // 2. Gerar Fast Nonce (8 Bytes: 46-53)
     u64_t rng = lcg_rand(thread_counter);
 
     u32_t b46 = (u32_t)(rng & 0xFF);         b46 = 0x20 + ((b46 * 95) >> 8);
@@ -43,26 +40,21 @@ void miner_kernel(
     u32_t b52 = (u32_t)((rng >> 48) & 0xFF); b52 = 0x20 + ((b52 * 95) >> 8);
     u32_t b53 = (u32_t)((rng >> 56) & 0xFF); b53 = 0x20 + ((b53 * 95) >> 8);
 
-    // 3. Construir Word 11 (Bytes 44-47)
-    u32_t w11_static = template_msg[11] & 0xFFFF0000u; // Mantém byte 44 e 45
+    u32_t w11_static = template_msg[11] & 0xFFFF0000u;
     data[11] = w11_static | (b46 << 8) | b47;
 
-    // 4. Construir Word 12 (Bytes 48-51)
     data[12] = (b48 << 24) | (b49 << 16) | (b50 << 8) | b51;
 
-    // 5. Construir Word 13 (Bytes 52-55)
-    u32_t w13_static = template_msg[13] & 0x0000FFFFu; // Mantém byte 54 e 55
+    u32_t w13_static = template_msg[13] & 0x0000FFFFu;
     data[13] = (b52 << 24) | (b53 << 16) | w13_static;
 
-
-    // --- SHA-1 HASH ---
     #define T            u32_t
     #define C(c)         (c)
     #define ROTATE(x,n)  (((x) << (n)) | ((x) >> (32 - (n))))
     #define DATA(idx)    data[idx]
     #define HASH(idx)    hash[idx]
 
-    CUSTOM_SHA1_CODE(); 
+    CUSTOM_SHA1_CODE();
 
     #undef T
     #undef C
@@ -70,7 +62,7 @@ void miner_kernel(
     #undef DATA
     #undef HASH
 
-    // --- Verificação ---
+
     if(hash[0] == 0xAAD20250u)
     {
         u32_t idx = atomicAdd(&coins_storage_area[0], 14u);

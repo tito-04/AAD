@@ -29,7 +29,7 @@ CUDA_ARCH = sm_89
 #
 # default target
 #
-all: sha1_tests deti_coin_no_simd avx avx2 avx512f sha1_cuda_test cuda_miner
+all: sha1_tests deti_coin_no_simd avx avx2 avx512f sha1_cuda_test cuda_miner server client_scalar client_simd client_cuda temp_avx temp_avx2 temp_avx512f
 #
 # clean up
 #
@@ -41,6 +41,8 @@ clean:
 	rm -f temp_avx temp_avx2 temp_avx512f
 	rm -f a.out
 	rm -f cuda_miner miner_kernel.cubin
+	rm -f server
+	rm -f client_scalar client_simd client_cuda	client
 #
 # test the CUSTOM_SHA1_CODE macro
 #
@@ -96,3 +98,30 @@ cuda_miner: cuda_miner.c miner_kernel.cubin aad_sha1.h aad_data_types.h aad_util
 
 miner_kernel.cubin: miner_kernel.cu aad_sha1.h aad_data_types.h
 	nvcc -O3 -arch=sm_89 --use_fast_math -maxrregcount=64 --ptxas-options=-v -cubin miner_kernel.cu -o miner_kernel.cubin
+
+# ---------------------------------------------------------
+# SERVER
+# ---------------------------------------------------------
+server: server.c aad_vault.h aad_sha1_cpu.h aad_data_types.h
+	cc -march=native -Wall -Wshadow -O3 -pthread server.c -o server
+
+# ---------------------------------------------------------
+# CLIENTS
+# ---------------------------------------------------------
+
+# 1. Scalar Client (CPU - No SIMD)
+# Works on any machine.
+client_scalar: client.c deti_coin_worker.c aad_sha1_cpu.h aad_data_types.h
+	cc -march=native -Wall -O3 -pthread -o client_scalar client.c deti_coin_worker.c
+
+# 2. SIMD Client (CPU - AVX2)
+# Optimized for modern CPUs. Change -mavx2 to -mavx512f or -march=native if needed.
+client_simd: client.c deti_coin_simd_worker.c aad_sha1_cpu.h aad_data_types.h
+	cc -mavx2 -Wall -O3 -pthread -o client_simd client.c deti_coin_simd_worker.c
+
+# 3. CUDA Client (GPU - NVIDIA)
+# Requires 2 steps: Generate the kernel binary (.cubin) and compile the host code.
+
+# Step B: Compile the client executable linking against CUDA driver (-lcuda)
+client_cuda: client.c deti_coin_cuda_worker.cu miner_kernel.cubin aad_cuda_utilities.h
+	nvcc -arch=$(CUDA_ARCH) -O3 -o client_cuda client.c deti_coin_cuda_worker.cu -lcuda	
