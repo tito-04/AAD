@@ -177,7 +177,7 @@ static void initialize_cuda(cuda_data_t *cd)
   //
   // create a context
   //
-  CU_CALL( cuCtxCreate , (&cd->cu_context, NULL, CU_CTX_SCHED_YIELD, cd->cu_device) );
+  CU_CALL( cuCtxCreate , (&cd->cu_context,NULL, CU_CTX_SCHED_YIELD, cd->cu_device) );
   CU_CALL( cuCtxSetCacheConfig , (CU_FUNC_CACHE_PREFER_L1) );
   //
   // load precompiled modules
@@ -231,8 +231,7 @@ static void terminate_cuda(cuda_data_t *cd)
 // copy data from the host to the device and from the device to the host
 //
 
-static void host_to_device_copy(cuda_data_t *cd,int idx)
-{
+static __attribute__((unused)) void host_to_device_copy(cuda_data_t *cd,int idx){
   if(idx < 0 || idx > 1 || cd->data_size[idx] == 0u)
   {
     fprintf(stderr,"host_to_device_copy(): bad idx\n");
@@ -242,7 +241,7 @@ static void host_to_device_copy(cuda_data_t *cd,int idx)
   //synchronize_cuda(cd);
 }
 
-static void device_to_host_copy(cuda_data_t *cd,int idx)
+static __attribute__((unused)) void device_to_host_copy(cuda_data_t *cd,int idx)
 {
   if(idx < 0 || idx > 1 || cd->data_size[idx] == 0u)
   {
@@ -259,7 +258,7 @@ static void device_to_host_copy(cuda_data_t *cd,int idx)
 // launch a CUDA kernel (with 0 bytes of shared memory and no extra options)
 //
 
-static void lauch_kernel(cuda_data_t *cd)
+static __attribute__((unused)) void lauch_kernel(cuda_data_t *cd)
 {
   if(cd->block_dim_x != (unsigned int)RECOMENDED_CUDA_BLOCK_SIZE)
     fprintf(stderr,"lauch_kernel(): block_dim_x should be equal to %d\n",RECOMENDED_CUDA_BLOCK_SIZE);

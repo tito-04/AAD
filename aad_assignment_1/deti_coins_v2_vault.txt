@@ -2522,3 +2522,705 @@ V00:DETI coin 2 7`}eG6Mv.srsBn?Ouy79/8[fCSOz\r"XHXL5j_K^*x
 V00:DETI coin 2 YsQP"TKgjRIo\z\?%R5.O\l_+[6<L4qi`1.wekQ}2e
 V01:DETI coin 2 !i.bC!(1CKCq9s%ho.b}~`_ B-gni N9FVy74NEb}T
 V00:DETI coin 2 q51W%fK`T>cFQy|Q@Kg'GOSVx%\L<eQ%%GW1PIStdJ
+V02:DETI coin 2 J;{1&Zj-Z(%qX,>?4=gk_+3 N}cZS~#loH.gs1>2_D
+V01:DETI coin 2 TRp7zL"]N.lO)'8r4AmXK(nEiMHW6NEV8:TF-q8) v
+V02:DETI coin 2 bhV i|1M,=hG(O/B~<u>ck9'iC>z*#F*=wTkf!1ms+
+V03:DETI coin 2 <[9<vepY/YF}*u*XOC:!~ORS'Zo!/Bzjjz?W0V~/`S
+V02:DETI coin 2 BEi(4F},j0HS`?j$CV<C?4I~\(X,~g{.Nxt./zL2Ei
+V01:DETI coin 2 VJ mXWWHRo:AkN</*(pp}^73^{]-k=z4}nDAfqEa<\
+V00:DETI coin 2 JE#wNdGl~j5[[h[%udg1.&St*?!hhiJ4oz{5jOb#I"
+V00:DETI coin 2 Gb7,HYpNc|(TjNACy3V!u1otg+VzAN`-ez=eX8es]Y
+V00:DETI coin 2 tmX/_n>5U5Rgby}NG)Ke=8/ SAwYDSi5`4^a[DUCCu
+V00:DETI coin 2 4pYQ$"yIA8Y1C$nC#L79jSs]u0<[}lEBb2ece9SdLV
+V00:DETI coin 2 TPLH}9C|~f|RS,;$sUw*Twbe3cYsg.D;Ay=K\g%NbP
+V01:DETI coin 2 AB&gSVrY!+z7SHB2X&'kCIOROFY;X6[Enj=xR(^Rtm
+V00:DETI coin 2 O{I QN8Cf8~*2A9|70na~D(6)lL?ar."p(7tpS@"ER
+V03:DETI coin 2 c<x>|P27Ir87'=`|h>S'*<|lo3($S}e./yw@<1y0Y-
+V01:DETI coin 2 eG{g$=5[_D).*Sd5b]!{%oYlk`%+{qM}%;7y'xQu*%
+V00:DETI coin 2 A/]:t&?v+l9$t,B$xw&?}},*cO ^M\t@$}olKmr/8O
+V01:DETI coin 2 cB8@iiPI3Am[9NPPP0KyfIpC\Q~9<cbC]kJ]=o+8Oa
+V02:DETI coin 2 1IjYvQ0n9^< 3#DgG;'2:,mTmgoG6i~*AEr;L'/Y;[
+V02:DETI coin 2 J;{1&Zj-Z(%qX,>?4=gk_+3 N}cZS~#loH.gs1>2_D
+V01:DETI coin 2 TRp7zL"]N.lO)'8r4AmXK(nEiMHW6NEV8:TF-q8) v
+V02:DETI coin 2 bhV i|1M,=hG(O/B~<u>ck9'iC>z*#F*=wTkf!1ms+
+V03:DETI coin 2 <[9<vepY/YF}*u*XOC:!~ORS'Zo!/Bzjjz?W0V~/`S
+V02:DETI coin 2 BEi(4F},j0HS`?j$CV<C?4I~\(X,~g{.Nxt./zL2Ei
+V01:DETI coin 2 VJ mXWWHRo:AkN</*(pp}^73^{]-k=z4}nDAfqEa<\
+V01:DETI coin 2 AB&gSVrY!+z7SHB2X&'kCIOROFY;X6[Enj=xR(^Rtm
+V00:DETI coin 2 O{I QN8Cf8~*2A9|70na~D(6)lL?ar."p(7tpS@"ER
+V03:DETI coin 2 c<x>|P27Ir87'=`|h>S'*<|lo3($S}e./yw@<1y0Y-
+V00:DETI coin 2 cjYcCsyi3vR}Lq{|nHPt'ZP>;HltzP"}<yofF>%3|y
+V01:DETI coin 2 "(r0bQ7%@5CCF!1{VIFvFr9$,E>?E$9J*5SqP~PTs;
+V00:DETI coin 2 aNBf6h0*-[s|!+#[_o}&uC|m/L![FB*v$Pn[|G$XLi
+V02:DETI coin 2 H|5Ye!]1Iv2e~k. @_1Fpb9f"w#(AD*&wcvpXsO1TA
+V02:DETI coin 2 4Y7ZA4XmB7T7qbN$/7hYAc=zLY iM PJ9'>sKco{8'
+V00:DETI coin 2 T6MO[`r*74.7l;%2|w#1v]%Pv3WonR0T' Q|zi:%S 
+V05:DETI coin 2 |NccV"<!x9SLfXE[w:;!XgSm}<Z+IK4?V3Y(X_<6'J
+V02:DETI coin 2 \\~dgixnm!1HSb:h7)xl@CD5sjK7r">(6vay.D2.GG
+V00:DETI coin 2 |7s>A>a^Kj)BsD=$|nRGfVYj#F:t,v-8e9'#sw+j-E
+V01:DETI coin 2 c3gX&['U*tkSUA,g <gXoH,d~ti4K_cuttq?N|*OPX
+V05:DETI coin 2 {akv-ieD<&I%#G[i]\Ekw]:nsIiO*1ALl`5 GW'Uf'
+V02:DETI coin 2 CpDmVLljh${*_"m>PcussA^Tx$h|z|*'"A|xLo-&f1
+V00:DETI coin 2 Nj{:CV<I:,rA;uzZ2KS:t:?!VE=BYS6CF]?btF6+XM
+V01:DETI coin 2 v'w|Eq;8ToTjjc_#jZ'jASih/rg|H;?U*qixvOtX(O
+V00:DETI coin 2 y_P(g*\SSCfxa\"s}@|*oDmbt+Y\\L+z1>o]Y=V8VI
+V01:DETI coin 2 / %`i0;t3wDgV5[k#pfSJse/VFCGlv_6KS\f,[}-RJ
+V01:DETI coin 2 b!3%@QSj,J@Re)Q4ua/yYvW+IX2:*+_brgSuC@}FTx
+V00:DETI coin 2 03|tV<HT*@wS5PVdO>:h1am5?PZ!X[ |5srmzE-I/u
+V00:DETI coin 2 E*3(*{B11+_*?H1CvNa-KtbbmLC\2*I)*A&b2z=mGK
+V00:DETI coin 2 ZnXDN(r*n"Ni0bW+_Z*U 'x$xz)g`Ej~(OX^\gfXLe
+V00:DETI coin 2 /~4<;dT9{(&;*KpE/ oL;Ww8y0C/6}}|AbhL/</yS:
+V01:DETI coin 2 9aL{/+'-S)c~6r7jise8v`FS(}`Tr~\uu6BIF5P~Pu
+V00:DETI coin 2 hgV *=FrST;U}ph$]Wz1a8=GowC"M~-  5/U[iyQ.j
+V03:DETI coin 2 9Qnc32Y|#Qsk0{||C_@Sdol+6K@;X!2;mq7kbu'x%!
+V04:DETI coin 2 BB'*}X$\G^Uq2@P/]aaES"[P$ 6h"u{<T#?i7A*B%6
+V00:DETI coin 2 U|?j<Z'<\j|pH?A@2,DHR:57xGZM{(pV_F6iregW"1
+V01:DETI coin 2 ey\oa[_1ZHJ#}umo_18b-l lCS0e2#Y_HtHTKH4o4A
+V02:DETI coin 2 v=XF!?ww6n/pV<L}{[L2t>`qBA<s&*C@E:Dv,AY$$m
+V03:DETI coin 2 HLgEV1/e.*7.UQKYi'RE!I\bu5M7Wufx 8&8<`XAp#
+V00:DETI coin 2 |>IfLt.MjxfQ(u"9Mok'KH9bS1Z'e<|%Z/(%Ylhs7k
+V00:DETI coin 2 0euA*"5z[I$Vt:GU!;atOhDl76@V^$}xPFS1u?U1Uv
+V00:DETI coin 2 Yi"\tL:j1npmZU$w/`Pt%9v]:MmKt+O!wzB.1!;OLF
+V00:DETI coin 2 "W`d(nb4w\YL5o:N3L!8<I!`Vf2]|N?_YCu]9}c6hK
+V00:DETI coin 2 y A3DY]vx[:ao^rql*uTE`~Fx*H l/?a_|xUYw%*"M
+V00:DETI coin 2 ,']u41<Nu<'f(;kxl@E3}Puw88yv8tR.I^[^!{3' F
+V01:DETI coin 2 zXyCpx=M1mI}MCc%' 2+ IB{jb(YZ5e)?E_4:K(dG.
+V01:DETI coin 2 H(R? Z|{ k;]{h_`w~H\0hhTwe0_Mxw(j5H?5;]hWA
+V06:DETI coin 2 {v?Tfrs`0^8$)*Ctr8W~s5w`}[beli(254Z8"OcQ&)
+V03:DETI coin 2 cp,)j51culyeh%_A`ufu[B4AX1E^O%M}\9!p<F24n[
+V01:DETI coin 2 ;}5/E8L;r[<l9wn}`nF8"}To3G6YpKp\Csb?$ t8Sd
+V00:DETI coin 2 d,(/?4tkECh8Mj5Vf|+.%fYU7q rnC%Q/8!>~u(uNC
+V00:DETI coin 2 K-|jX04?KOILE |:@Hm7(N]MIyAM\./tsjE&$M>i[?
+V00:DETI coin 2 >KgFKt$lY#,r,G#!(?C$h"H~n1%=6\}EA m{q+AFn,
+V00:DETI coin 2 dOVzc{WX zf S'q8!79b46z( Xh8.75!IF@jAq;aW*
+V03:DETI coin 2 +88d3A/wS?#1+`Oni4)=s+;@&*k;Xb`t<TP\.CVw:*
+V05:DETI coin 2 CY$tL:p}~ReLulF] iG!p>8<?7A(f>APU<#O3:Y*Dk
+V00:DETI coin 2 hp\.#&i-X/6ibW[nF\IQEidoeg rsKjioUo"I8Ft48
+V01:DETI coin 2 o,v-P5^Az`2^;H~*'do5O 2POY3.7bmF[?h74SVYb/
+V02:DETI coin 2 ?_YQ.L7P8Lb*w&kl^!4)|1"o$kXz.+?Qj#B wf,Bi'
+V00:DETI coin 2 ?Y;u4IC?z[HnxY[t3|IV}\[SXCW,3N8$H_d(ZkRF!>
+V00:DETI coin 2 J!BGIBC[gOjj%Vb?sA27xD-{D/)hfo`p%lT_q/0=CI
+V00:DETI coin 2 1Fpr*Au\%*b%rj:B`5H'SK8*to~?h]41,3.EGMm+yV
+V00:DETI coin 2 m*jCV^~-$Pv:yV)|aF|y*7tyO@`I"09.t-,EOlXk5a
+V00:DETI coin 2 C {?$#w}'=/j8!Vch^_"t )Vh4]1amb>yK'0IyS|mN
+V00:DETI coin 2 7Z[/KI;XIN,xE2nvnS4gxed'#j^\6Jj^*&8Kt50QzR
+V00:DETI coin 2 qm(Vg?^GJyDn12=E&q;w2(:)"mj7"xNT$3,%qWeaLq
+V00:DETI coin 2 X(,,zb9_HC`.e#ge aWGxS>Ok|aErKE-pw9q8"k;sw
+V03:DETI coin 2 r-Rs*A1|d;n")+s3XHLHRi4P=Y8oi0T<2e\yQ8:?:k
+V03:DETI coin 2 "YN]X!&9j/!d|Xq;x?~@Hwmae9],zH|EOeS/C^l#Cs
+V00:DETI coin 2 'UZ}{*IHi87R3qW3Z"}v)SFX~J=DvX+=~CIql-$p#8
+V00:DETI coin 2 PTHc7=iECETw#jrCW6s&3/I,Y fEKS+!]8FVR/38d9
+V00:DETI coin 2 5_mAmr-AIKS3.Ab\CeN$TVj2&rn,<BnkI8nl"O4rcq
+V01:DETI coin 2 1&Vmn"HIik8&{7Qj![Z/p..!*11^_OkEz{|,@5"_O'
+V00:DETI coin 2 pofolM*#8E5Ado@{`^?\dACNYWe{ !wv fYjq%.v2q
+V00:DETI coin 2 W|qIR%sK?2RwDf,,j8wm,*HGqNa f&o^7i>4-{_M5*
+V00:DETI coin 2 |yld!C4U v3%GeX$ Pt"%K!,I{88I%1)VVke{5[O`Z
+V04:DETI coin 2 .,_)-B%D&r_g$J>(S'4NJ;P\62$RHK)U\AL/x+.6C!
+V00:DETI coin 2 64b*/eL^zhp>2tjXH\bF5x%4PNLsb_5}'53B%l|iRg
+V01:DETI coin 2 uOf'6YD1=MCu9te.2yge|)c|wN=x7kXo"$iTdMrCZe
+V01:DETI coin 2 9[9zeKL;@q]Ze?_P_$Tyi&U1cV>s>tBx&m9M\t/od]
+V00:DETI coin 2 i$Z!urf_pLH1FpUi`oh2,{y%`{rV$I'pv|:ZC}E&tH
+V01:DETI coin 2 <!MK&V<e*_K[E$;/zGa.TE8ax2|cW(9^ MAia]@QeC
+V02:DETI coin 2 jsf$,~$["wz8R.VMCH$t.Kc0E}iQfH+m#\RSYlS('u
+V01:DETI coin 2 hS Kv>coq"%G1|CgyY0k8HGYriQDcOu2NK!GoLG57^
+V00:DETI coin 2 Ewt4LccQ/Y_qM]D5+eV/1v;Kr'8Fccpp_M Qz$iO%x
+V00:DETI coin 2 (@jXP-<]*P[m/6Ykmc%]vw.<K0rF\_F&F*v|2"z'Bg
+V00:DETI coin 2 9;#Z!RfPmI:L[{_Zz&V5etyLm<DHHU4udDea+y9?v+
+V01:DETI coin 2 v+cL/t:?f=4iCmWg:}]Sv]{=f(a!R',)5FoC@I[RTu
+V00:DETI coin 2 8%4G;8Cv\,\|JI|`MN>9c8IjpDt\xF?7Fi+2h'O]?7
+V01:DETI coin 2 L"g$6wl-/;\6A|9FBr-lyR!D).Ko|bGIuWI"#w2}KF
+V00:DETI coin 2 wH"+?8n*/tum%^pO.O1eX+>u!nHv)*>se\*ooB2X;P
+V02:DETI coin 2 oje5s5URL\P(\>\Lv894t'En$pP%e.t'/0Xrg,Wj.e
+V00:DETI coin 2 ",}f(P$UNy;2q@OQeIl:J'gFVp'W,q]VF$,)v$[%1&
+V00:DETI coin 2 5}: 1rw)bHK4_& Evs?}%T7<_dcU3X7=<!RED_R/Rg
+V00:DETI coin 2 !>uJ?8qhyiHp'6A\|>y.c[rvGDa%FYp<O]'YE9|r!8
+V00:DETI coin 2 )`b#}W@7KC=Vy.id3oiCs\A'G)r[K2!{g!|O&JZPa#
+V00:DETI coin 2 t[0.%ZU(;+J'|Ze_[28|m%y0i|>=ZGl7/qq!K(jB$Q
+V01:DETI coin 2 0]}vb@f]6=C!+Czi|^vzSO*.1s@-5z:gO)Kb<A$VGm
+V03:DETI coin 2 sV%o\9{#t.xG!DNY'R]ZhV\Jz]][H,{Y7O'{)fg"u$
+V01:DETI coin 2 0p0;B"nA5=4760*W jus`/+vOs*X5F1Y;8y#8EL'vv
+V00:DETI coin 2 y\J4i\PI9e`vpHIa;\vIr{cs$Ub\e8{a-Cchtz kY=
+V00:DETI coin 2 ?|qJe9RPLP^8s$lD>&lJ+[r/BR?4X`Bga[2Dbrz~$W
+V01:DETI coin 2 .U8K0\>.& K8NM{_N>n?BA[8 W[TR9i;lf{):2@o>l
+V01:DETI coin 2 <z@cHf:4;*v]Ao0}!O&5Ike4PWlOuue-vzLcnfXySk
+V02:DETI coin 2 n'b<Nfd:(OxloZ}[y<1w"'F7y>ih2/}]Z_\J1/5#GJ
+V00:DETI coin 2 C"Qh%INICi<r??Av$O?bG]CKu`zjq_~4CFIa@\{6ED
+V01:DETI coin 2 4M@}O9*ycp4f4O-`,/%roJZ112i|8urzg^yeA3mgVX
+V00:DETI coin 2 }y.bP]#Z<oRd2XFI#R\eGE=Ww}c#GAs`{*$;)=zP-J
+V03:DETI coin 2 \}aO]9+`j91e(JtgL`|=I`M^;9hdN:cW}<lYpRXH.B
+V00:DETI coin 2 0.*x$:~mw$Ijrc'$zhr`U:p<3ocFV>jc2?vLX;LMG1
+V00:DETI coin 2 1;(uQ4vfFS"0|VW>-+jIo %4~e^"kfAl 7)m5)Vl_%
+V00:DETI coin 2 ljJ#@l|"DOJ[ohKuF&|,t $"!!F_U!>|s?<H5Agdk7
+V00:DETI coin 2 LD1ZC$RdcuSI?So^[?'cZdxsoQ>~lo/?[HG/^C'*y?
+V00:DETI coin 2 qO,OmXQo+j.jfL5$M[20e899'2&vC9+MeB/}t%:!TM
+V01:DETI coin 2 qO,OmXQo+j.jfL5$M[20e899'2&vC9+MeB:St?C7-R
+V00:DETI coin 2 b/5cqzRR>~[>5`|g1}>nV#_]v"!h5}soX$Ded)JB%/
+V00:DETI coin 2 4ll;N,Lwy>;+`mPn&8U&c,HV}bjNpY+Vvk}%(MT\Wa
+V01:DETI coin 2 Uwc!%s4{48DS5_ge*=@@%]z!j%|9u+g3@!Q8y$.F9X
+V00:DETI coin 2 }(5#=%F}`ANv^h5%:w,FkNxX{<hW'%(8{vlU$!LxfC
+V00:DETI coin 2 ARCM3@7%rMRo`[?=lmkg#V;vtmU"e4*?HMo]}MgH*O
+V00:DETI coin 2 1mT$]gbkC5\m+(Iv1<C,]}+-9a`Ke$,8/V(HZV[KD~
+V00:DETI coin 2 Dx0'jX[[|K@R3fN>o<<15zKr,B4pt |OuKB#J\s>;0
+V00:DETI coin 2 a<6vX+7VobXbFiBcG6pf4{`MzUp,L\j`("rG?`O"X|
+V01:DETI coin 2 a<6vX+7VobXbFiBcG6pf4{`MzUp,L\j`("nzK<qVp?
+V00:DETI coin 2 :q<Ypf_&pyPjB|o@rhxVqQqSJgVTR/C5mJ=Ho{T1RP
+V01:DETI coin 2 BB(K/I""f]VRMPl>$,.UaO'3goy*-`{Rj^'o1h=gvy
+V00:DETI coin 2 q8F7-]V$,NE$Fk]I|yzFi@lGjDo$wv,S@fk%xtUSH^
+V01:DETI coin 2 ]=W*MC9b!5V{,%M2&\x`452o7X'~5hHLV;s73g5PvY
+V01:DETI coin 2 <P; Y%wv$54X<3R1*ox (*)I\7hNdflAJS[vXx;Ksq
+V00:DETI coin 2 .:>H3G$tXU2b)/[+'R^fJ9v.WNk>*P]|\Oi+7:d9mX
+V08:DETI coin 2 Eb4fNlD^lpPJ5RUJ'r[%kpz|~|[^tLN!Vkf$x+o?iE
+V05:DETI coin 2 Rn6/&}Sv=/VEXfaox[h3!5MR.,@v=g7V|C,f6#HEP 
+V03:DETI coin 2 CE^XM$bnTYbjG/~EI!$x`ds8uwN%AS/T'.5ymE%s'7
+V00:DETI coin 2 %^El&)SAH/!&\x5>*Mt1R8>/csoW+?1rt\Ir]gXK,^
+V00:DETI coin 2 pz9LG< }vp1or4f^6aYmcR7LaSR[4Oiw<FPE'k?PT{
+V01:DETI coin 2 \S<j)h,$/-&H^K247>'<VKc<l]KB3Fg0"gYJYO*!.'
+V00:DETI coin 2 <0yBpjHwz'pYVFtY<CTa"ZQSpeLs4mePVwi*,Q#*mP
+V00:DETI coin 2 pm>`<'zHEq$v'F\2#!r2L#?}UO>zVy]HVuiD}o'{fw
+V01:DETI coin 2 f9s*f M-[Im"(`LLqA[5;b=ekvoe.$WQ?\` %ruL9:
+V00:DETI coin 2 3c!^(z&qg$:UC{/0mWY 2+c+A2n2RAh>9!.m&9_-es
+V00:DETI coin 2 E#<H7:jk<Sk4Wy6HA\toc+H)Ze40);?n[8O|rl_P7t
+V01:DETI coin 2 ENuD?VV?Hfwrl,*%%7v^2GPi$/]cRrWnD/1nSMK?L`
+V00:DETI coin 2 j7$/vU;PIuf6bwXHPjeyV9pK]|{=H,YSFa}[h&aib1
+V02:DETI coin 2 ZfL9Ish6uK3ty(76xBY C/;jbvtY+9UlvIzj:Ycw[d
+V00:DETI coin 2 pE+7%PfKtd2#qEF%x@ovM:iaZ*Sct*zy7 I5g4sV3M
+V00:DETI coin 2 [0io;Js}06.$:K%<Yjz*3Rtb8RV!`0oXtv?y/r!Ht$
+V01:DETI coin 2 t4|t&nEi4*7)}lQozktj/Ck`_k%/) .e0z:&Q\_ ]`
+V03:DETI coin 2 ]7ld>=.V[O4mVYKaI_&!oGY#`IJwE0vxi]}1K%T^BD
+V00:DETI coin 2 6Obf(OhG|06%(x2U#;d*+/4/yi4IM*B$apDKE},E^L
+V02:DETI coin 2 #F[F/4"n`mui|l];VOi8X,nNTM_@v*Vj|r@|}q/Y,j
+V02:DETI coin 2 |tUj#U6.;YF|_Bw1RAX@<Q7b]Q* we;!HkL%HI>I;n
+V01:DETI coin 2 QzAF$7YL.:}m:smg2>s]wY&4o3yVbb{euq7/^|S!R~
+V02:DETI coin 2 ^7PM'G28+w*z@m~G7R`9wg:Dr@Rb>"?&Y(\"o`l}{%
+V04:DETI coin 2 x7j7<e9b+U$k!2qBHe4E'k4'eEi;%g_k7:w*wC%!v5
+V00:DETI coin 2 !Q}9L3 v}#s2/_K6A'g"?%_~'CQkV$]H5@!-0CHK}Q
+V02:DETI coin 2 A%b!ZU5v-i9]_NwCY4s\o#v\Eopfh@h,mvrSvpAa)z
+V00:DETI coin 2 v=,E[1K?>{?~^}=RV=s(:n9-Z(D*kBAHPzQ/\gHuR\
+V00:DETI coin 2 ye=UxE{Cqi!~"Yi0X,#ci$FUyy'-4Zq eRjSs3nSCQ
+V00:DETI coin 2 0m. FXoltcffnpm;FOYhp#RzQ<^9eb$Ei$3&>r["7;
+V00:DETI coin 2 xLTbNjQ}]v>ZMs^2H>9f=GR\~~oW~:uX%rzW%Q*1N8
+V01:DETI coin 2 f*>N<]JfJC%OT3SlCoruVI8Lr?ri%^ogz_N'ZmNa4o
+V00:DETI coin 2 }=?#8cb>mfwc:ASfb2YD5#lpj<!4EQr]v1`~@]DBH>
+V00:DETI coin 2 R?.!7S6b>cK)B@*Pq.qk$bM2L yYU/im+~li[AS/sc
+V03:DETI coin 2 +bJc83eZ^ BoS"w!n>9`4RGt`-wd-n>wu`tIbP?NK@
+V00:DETI coin 2 5]UR!VPz};!cI\ Du*LVfK\^T$ "tiSmX=H`=c;}A:
+V02:DETI coin 2 }\mQuYqw@.{sh,[UW1+6_+4g}~"F9wNjV2gx@,|>`y
+V00:DETI coin 2 oe\K6BBqEI'&8K%QU:d_`fPHV"i#'df+!md`VRlMph
+V00:DETI coin 2 ;RJ(yX$O-o0<V~3+xULCJ!uNO^J[(UI^4/xi;(L+VH
+V00:DETI coin 2 mlLyT75b@cCw6i+OOL2C{c3L;:Rf3z5g#2W!KsPMJP
+V03:DETI coin 2 |~.T_P< Fg8s'k\ 8$BKcP^Z[0>S'6;n#OA/2Mlre%
+V03:DETI coin 2 plzt[l~MzkdGA;!AuO4GEl*%E8oXTSK"<I8qdX?%_U
+V00:DETI coin 2 q}w1@`vg:Z`/~'5_qTz%555pKc.bmjK"sBr4=jCX2k
+V01:DETI coin 2 K&QIS>IS]Kyt\W4{u{3A|fy4.dx4n(h_EoYvm-m+l%
+V01:DETI coin 2 I1Lc3u*4*`G]+h<r}1!pi4l"$12yRtz<Q\[Ff}-?/\
+V01:DETI coin 2 *+}<Qh&_Oj:sp!\%^FSRI}k2mp?v\T?J=rLTq4*Pr(
+V02:DETI coin 2 pDO}4wG` =e=!;xt"V5e-rVc;Qgu%G|JV/";T(1%cY
+V02:DETI coin 2 ]_[\AvrWJQ;O@!D-WpB&lR)F79%_F&9X(s$cjI?F:R
+V00:DETI coin 2 NC+vb+"(l:0Sr>s@2-E[7't?wV *o;t581WB%g!<|4
+V00:DETI coin 2 zI<893{g[gg,]w4/TNC>\AZ`$u+LUBPPE]Wk%kxC1[
+V00:DETI coin 2 2!wuVMI=+vFNm?qrlN);Z7~{\o|4Jxt+fbf(S|[9zP
+V01:DETI coin 2 fk$_2rvrz})AP;s>iEC"YGE2cX>'l_(?&9>'>X7y3#
+V00:DETI coin 2 X,S-i4Kt'ai"=ypWy/tefQ&mcN'TE:1c=(Mq/%[8*F
+V00:DETI coin 2 CPncS*gA8#EmL`)p5U7@!d7h%%E(~LWP2.uPZb[dUI
+V00:DETI coin 2 s[gp<4!fCU!?vY7"Kv}D3ZjG[;zT}V-V!-!.1BXh2R
+V02:DETI coin 2 z85z^?;M)CPQEBC){!=;/]M?<A$-7;VCK4ep+Jx<*L
+V01:DETI coin 2 , ,*(G:Le0`yW y+OJ8"NNyUnLa)v`%D?tYu1-]/1`
+V00:DETI coin 2 bjlzt Cx/jiA;S*.R-@gYP_Isdjg8eC5-uu*O6i??Z
+V00:DETI coin 2 2\P,%V[O1"vqBhn(xgGO4;AKGYQpfh3;#Tcw[*WqE(
+V00:DETI coin 2 Ic35INyB%5bA&k<BX2 SDyc:`O^!_l*~{p|y|Tk<ul
+V00:DETI coin 2  7o3af/ $jb*]}Ud."]8r';}Sls1`P]KcEw[Lf(7\$
+V00:DETI coin 2 7cB10*:(i%%(7)AfC6p&{jvP *?vByz`I`lt;+H:6=
+V03:DETI coin 2 &p5Th-?>3+KLYIE/= =#2_g\VafDim;q;ctQ07y|$"
+V02:DETI coin 2 Ck%>Am@5@_q11:h>fVm9Oo'C3T"68c'Ap&#i|YX? [
+V01:DETI coin 2 >x1Y8s37%/OxV2o_*TGt_jZ..q9Lw:w1<N(59!v8$[
+V00:DETI coin 2 ,:6c-@eH.`JgytP]x$(O?2>;\)MWpIh`hs\fm~STz6
+V02:DETI coin 2 t7+*5QKoiL4")|6//#yf!q|G$S].yi8OS(HO*'iz=9
+V01:DETI coin 2 mDL8IO',breFXP}AiO,!zU"7`+io^Y6'-fIef5Rv<e
+V00:DETI coin 2 #/O~=oR`o,l)("P,Zmp\k%Ld3C:.A7wPeR2q.eVV?(
+V01:DETI coin 2 EWG`dAs5IX(G$1Uoo1n8BR]:RfOU^/m"}SdX{U>a<&
+V02:DETI coin 2 ^"\%P<BP4frm;StnHT1d9F<O;{WP8cV;d8ie$$W@If
+V04:DETI coin 2 R?oKaou)4YuG7V^ RKa,GhqoY}io(Q3lsWhI|}b"*?
+V02:DETI coin 2 Ao)4_*+l?5*>&g!hHl1OoJ(zc"'^dC5Q+vYs=z\1m!
+V00:DETI coin 2 *eEm-`4HWAm>lb/H[wNx0_IWX`vsyKwnzaS7j5k,27
+V03:DETI coin 2 DQXs9PS]9dorP|_Az'HIClze_EP] 1}XnijM8NvyBe
+V00:DETI coin 2 {yf;g~!r4"~r9}U,7R3"i^)F<*(6X-FweG1b(%},Pp
+V00:DETI coin 2 L/UIH.z4okZPE$XcF5zy,eb{`WI6$p]>>O@LKjf/"K
+V05:DETI coin 2 79|aXf'4p5ICz3+`}4GRb(7nl6vYO1UfB|TYEv<"?J
+V00:DETI coin 2 Isou=p34W%szdjgouOK}gbCd&Zv_"#<g5K5sNH(*:O
+V02:DETI coin 2 $2BIGnzNl&y./_12`''ER {fxoi`Oa}6t8=LU<&TY9
+V04:DETI coin 2 U(bm9ukyVal<(!im4q,+&,o(^A?R)S:)$=84u^w>gW
+V01:DETI coin 2 |}p19 Th@j'l$QHtS<_}jtCfV>zM'#-w 51>6q>`s6
+V00:DETI coin 2 Yg`d]YIc&eYr7+6Xq?(J81F?SrCPffw}IA"A@gN:=v
+V02:DETI coin 2 ?n){I~dy,saEiP1y7"U8 mXL`{N5xfnXVN&|};kUS4
+V00:DETI coin 2 "&9R?9A"gy5AWjc9}}.1iyz'c9SLMl7xXFnFik_nPY
+V00:DETI coin 2 7GNk`!4<`J#Z[(xgY(&yp1$1!ldRy2f%/8x1b`2}#z
+V02:DETI coin 2 |4o}R,|\5%['1<mI!voe7<,RJTI LI-n1s2d,4Iy2&
+V07:DETI coin 2 $yso[.*'7felL.B4|0K=`/;<qr63 >7|]*,bM#PlU$
+V00:DETI coin 2 lW?\hi2KG*|vY9s.C85V`-@W,9_G%*s[K"VNBc!7Xz
+V03:DETI coin 2 r(RjK>sGys_*h+mY*!"7qqL@cO5}~!>7i9Ks;XEKd^
+V00:DETI coin 2 8O!8<mm88;8Fb{H&hi?E!f`5@I,F9ad8$8ftx@zR?e
+V04:DETI coin 2 1^+-wL")b2?'YmC&vKr;},[E\7(oszyV#C<`rzKi=H
+V02:DETI coin 2 r'l21^!N:J_XZPN\",.Y1C)&l}9ra<&</e#)ma{4.G
+V01:DETI coin 2 ^.G^?*Po'eL<I]ql?`RguI/GCoEHb oD^VcXRG\M-V
+V00:DETI coin 2 mt4O'Jj>f,WB7\2L _'Jy_LC87b'wN.BUv^,Rv{8d#
+V03:DETI coin 2 nc`]z6>wKSD/C!}yD,KGQm8dv!X%"'^BQgK$Q"$H;9
+V02:DETI coin 2  (viGOBuVcwS(4e\Z7v+?eO<hCet2#(A^WfLY$Z8+6
+V00:DETI coin 2 TpW0_7i_t8+*x$uoI5r|fx5SUfp![bsHD1(A&3#"1Q
+V02:DETI coin 2 B_3*5b/-QRrR=BbOB6p2#j &QJM3"3jkr`3NU$VY<S
+V00:DETI coin 2 :L>GRfP1[nD9}-|c;""2oc.bHm-b,mHAs*Flo'Kr%L
+V02:DETI coin 2 F.,vUc-*`TVj:!$I;3gU;PG.4IImZgY?KPq+=?H?LQ
+V01:DETI coin 2 j-/a[I8@A}+^k%;sQ\RD{ 5]CSh\AIzu*E$2a>6WF0
+V01:DETI coin 2 @@b9|%48(2B-+-)b)T@t(+"?YmaGvIl 'w4e12&c/f
+V00:DETI coin 2 ^2Klb[;f9f9izL"_gXl$e_`2S$7tb@*qLS#^p][S5@
+V02:DETI coin 2 bo>mqAbS>j[Rn~%&o9T0H|{AP8naWz<rf'UeAbhbI]
+V06:DETI coin 2 8GSU>9[q;Sj|?r/q?A/|'F<ZS'P{T[|\h1R/X\*/$;
+V00:DETI coin 2 n!2#T.#f$})a7jUl$}S6MNCwtKYC"%SjV3QJ7_+]2/
+V00:DETI coin 2 z6#AO6BsU% l5W1=s>z5&,/%On!'|_\bVHdRcgiZ''
+V00:DETI coin 2 [z<FV|8o" c]bKol_LY0AX8DjB9qSaY;@w7`29R ]~
+V00:DETI coin 2 ytrpGm'9L?Ar%o9/*Y]5\^V5aM[Dl&TsHM*C]AR}>q
+V00:DETI coin 2 Ds7U!`yA+&x |rxU "PbF|q3*\n+|e)o?qyO>g"Om2
+V02:DETI coin 2  m*QS 8As!{bo.ERWVI8-\XX{[}6Lym{0>D9jHJ^Z[
+V00:DETI coin 2 b[g,W -/tj'7Bj[`(pz`py,(4fu/Q2$aX2X,v0>WAr
+V05:DETI coin 2 f:mx'<Ar`|OE/\>{|W`D~lQwxc\J<f?*%19B`i{FA"
+V00:DETI coin 2 k8="R[oF}BbnTQDCF1!kW:0Jv3VAQx.X8Z(fo[w#Q 
+V00:DETI coin 2 C/2heY-.'NXR`pDoe}9_1,X08Y'N/<tIunRut&6>Q#
+V00:DETI coin 2 IAcSK1LJ|%$[8S+FEj<5}y]HMS%|Qp_0/F^}<(CcE]
+V02:DETI coin 2 %f)"'JpsN)uTj lPy!C1Pu{vPs?2&G5i>mK*$iU||h
+V01:DETI coin 2 he9;7l$qE#WHf[gZ%C3-t\xj 2i^HfwH1p#}?/09\:
+V01:DETI coin 2 eA2@-wsbgeVA.me/A!|tM`FL.WXNDZB%3')L[B$,s'
+V01:DETI coin 2 dgrKUjPSC;v%nwEa!u.VV:CZsPkeP8uYxWpm'7ro T
+V00:DETI coin 2 !K/I-9Vzf*eS_"#}HNlS(R]$UBnnQPge3KuoIlX'[>
+V01:DETI coin 2 8=%-$cR/H]&o"";jT+V\R7|P.E!pY)+QVGewbY/M@4
+V01:DETI coin 2 2RC0LBf,@T!ik0}0~%\'$NN9V>yb%vc7DoBOc1ryAS
+V01:DETI coin 2 $LV8*(c2~Nx6\<4i=o]P-D%fFQrO[iG2ucl 6,X'wK
+V02:DETI coin 2 9uhmB}csSy-S-Y80M;f~Sj;<DkHl~F+_.~Z/{[,M>Z
+V00:DETI coin 2 sc=V4z0Cm^py)l1LQjei:No3ZQ7\>~;T}8\ef1Z&V3
+V01:DETI coin 2 r<Kizxi_84_Eh0rdobtU@d.j'az.[+/`}851_I<Fp;
+V00:DETI coin 2 >4D8bMHjHO>=q%1]o]jy<.?2t)NOC&XomQ~%zct.;S
+V00:DETI coin 2 9R}OYdr\*a_viQ1\"6y?$<RMoXjI<w59N"-zv2yL3W
+V01:DETI coin 2 ,IIuBgc#1:B[X, b E9@OcTd/OY(8E2$|ONwt&_#hR
+V00:DETI coin 2 bUa3ME3 :S|Z""CT)^x9Y8%S[giv.}/l~dmJA+>*nH
+V00:DETI coin 2 ELKy%+,D~'ooKKL#iS9|am$ZS.D+}CD_wrC9?4(1>d
+V02:DETI coin 2 wH|?4nvH""lCEs}H*hld6w-{H!"H<=UTkQpG\ Cv'\
+V01:DETI coin 2 p}$Rnv7K%_XNESH\}:T%/1LuF>{Zp+Y6}/,4Q>}KU{
+V00:DETI coin 2 ;(.UP"|npbXAbN}2s-{TjDpTK|.l4{c;9BBAC^oE,j
+V01:DETI coin 2 :P`"ALY-eZ/'D^%d=V Xj$nL%#&)5]\=|7,sO*s;/Y
+V00:DETI coin 2 R'KKroXWt*8\58TMj9[BP'1p>]=z5Y{zi&G*L pEJ`
+V00:DETI coin 2 BG$hG8I-4^az)b?@X~<d(UdTx]19CEtB;!]KTbztN'
+V00:DETI coin 2 $nvb]v`Cv~pBm{qo'QVZ[t!ZpoB-1$ HCvQo>'!Ney
+V00:DETI coin 2 Q-hN~n/$FkKJjp!/Pv?lA1ys;/q(4b]KGotzo[>c?`
+V02:DETI coin 2 b_hI(8k]?c|m"B[4tGSH~opAV(Un;6>+^79rV2*fdc
+V02:DETI coin 2 ,n<#6%rhhpjt 5|yGuj}B1/3vn{ef%Y*,|(M%W<"jj
+V03:DETI coin 2 H(FB[A-wNhFs59?x*u};coLs%EY8*@~&:K8[i g4h*
+V00:DETI coin 2 wJc'[Ikj[e"Is"H;LU>a<!VzrUpFt:ynhwc49Q*'K{
+V00:DETI coin 2 ^B;^KcL2.mfE82I^(vfE mky,WvRSm8I}?7.gZd1rS
+V01:DETI coin 2 yo}lCLz[o<uepNulpV,`JkO|UU$B1foP*zuuhrNAJR
+V00:DETI coin 2 [n*NRC$1zbP9^6[^7e{P+Rk `<R.A7O"4x2i}2[?1f
+V03:DETI coin 2 f]I6zD8c=SWI%8*6W~lzQbAYGBOqS3DgdNAEw!`x/`
+V01:DETI coin 2 y22OVWo}fjeg7BPf\9XFxy;`"}a;',{U*=8tLoCq}r
+V00:DETI coin 2 S!nuMzE.s1Q/i_X#uG .xP1V>=Ykf(Q$}z4O4R 9G&
+V00:DETI coin 2 o_EHgDX);z\*Izb8x^*2mwrB,j?XEkv{O\>}n,KI-)
+V00:DETI coin 2 $mIG_8l#~\F QY5  "45"l\!E'@O {wef@gOgEAx.L
+V00:DETI coin 2 q'ONN_pF<1o[f7b}bX5l~z9vR^cS%6igG$0F=<yNB[
+V00:DETI coin 2 ew`: e.>]rOH)hVnbG|"N.[q,pXvQt}`8201_2VdYR
+V00:DETI coin 2 v`T[DzPqv(:*w[\.C?\UrjVQB\yueR'm~)K5KN{M(A
+V00:DETI coin 2 ;9v#U,&._;vv9>U|[+<K($>v>*FY>IV,jg6t`L7E}F
+V03:DETI coin 2 NHm*\|Mb?;EPVef5T$, q8paAZj(X[Se4e!.#fj $G
+V00:DETI coin 2 *`I9t x%rNI4 n-ALD(T+W?Y2eK(r&vkp)7]SiC<Ae
+V00:DETI coin 2 ykgMn~`X>~*YO+/=zi(]]PM8l9iI]t%_91l@G luUK
+V00:DETI coin 2 ,P*<z53$`G:FHVSlOyI15t/?1(g&K>}|$bp .k!X=[
+V03:DETI coin 2 V yH+V!2OhKd6$w'>#XU58jRCFxZdo)NDhc2E kn>b
+V01:DETI coin 2 l*w -zuUM$nc"DH+ctk_SMSUZMD6SK9 (DMlLO2E85
+V00:DETI coin 2 :R6R+EZY-)WK%Uy]1z@2>(XD[_s^y'FI*O9F 8&+V9
+V00:DETI coin 2 ezS;^rWh1FG;V-b;h$PbK`W@sF7/k6Qr8l.Z+DTJHq
+V02:DETI coin 2 #Cs|p`5"r<;Xh#t ,%8~ v<t7N wDYRH_!v0e|sv m
+V00:DETI coin 2 ~YaoHy/El=f+%Q!zs1:'\Jf|lf}942jlrx9cGE{F-<
+V00:DETI coin 2 [y_=* N%zo8?d8rXX0XFEZp2p[:I3plUUw!A'F*/\I
+V01:DETI coin 2 UnqP$n9k`n8Q={zC)hJtF2!BBp9ei[B.|VM||wj e-
+V00:DETI coin 2 fY7EsNJEFEHK^e~{ _YwpL]Rvsl=OiKN[P=Ey#r_=D
+V01:DETI coin 2 maa;=9ZLeY[,N"]Ips`BhC`+F[/TnpW3y5 Z;`hp_G
+V02:DETI coin 2 8X^gP6*)Gr|6z^]rZ7([\ >BpsHhX}68D|"#"C-9Zm
+V01:DETI coin 2 sHT!@ty@..RWe+ dN#12L7C%v;w1a/e[gP#-lQIca<
+V02:DETI coin 2 o3ii6K{'(KOPgPWp}OMFKp8i4`B+f0<%9{XbVK-N2J
+V00:DETI coin 2 I#2G-/XF:\Zo=hss!4l>t}~pdo1K(KHl 7+ghbmfI,
+V03:DETI coin 2 xOGV8G|?ZJg0BoTHNUxt^Y#aNTp,}{^p4)zBG VPqe
+V03:DETI coin 2 69Z'))uNP2C2Xacpy.DpO(Dg)mH8Q(mra,4@Y 3e[,
+V01:DETI coin 2 R_.v1cp0!{Gbu/N7Hl<";wQ]<e/,ib-,~=GGtzbPRT
+V02:DETI coin 2 *i=RvO<K(g~Peyj@XS8gxYe.BHqUQ<MnotS<gLMSU$
+V00:DETI coin 2 d_S:,g4fLt{|,_$$$UzPD>%7P!a9HI&B[%#**j;\PF
+V03:DETI coin 2 IyU&^'All,kP]WR;=GY/$RVz gq5Fue}_b(]rCSj.Y
+V01:DETI coin 2 X85L4a4<R,Fmi-p?elwgkJ'ttNH6sgj;;Vh!&eUfLE
+V01:DETI coin 2 b\,#mc`WK@:btW><+(tLG +Pe*G3nI4ff)s^,L8>B`
+V00:DETI coin 2 pDrL(lQGluoz~v[_z-sb!C>x@z/o4mZI2?W<^lC{Z|
+V00:DETI coin 2 ?F@OC2zYCSu+1LI*Ng"]ev}XIUkCNQ,h(`&2u4^y\Q
+V05:DETI coin 2 ML">/V8?fU;hGvXc!>?33V%L6P&*C'cv{"5Ltrcm[Y
+V03:DETI coin 2 &my?u{H2lYt,z*J){Qz2e>C`s]+/[Tr4/(Xwo:7P_,
+V01:DETI coin 2 ,/ul$/ygd_nbyp(4}>G wz9<)`RaVf+#ceYYFZu}.r
+V00:DETI coin 2 iYBr[c2NYKpk7T[%Ri&t115#i;c2"neH_%Aimrs0(.
+V00:DETI coin 2 "8`c,)XK\]'z\X'1l}0@vae2<yY,,cN4lNzhc)g/)v
+V00:DETI coin 2 R`r;#NJ$>S&Yl`*v2XjN2$N4B6r<H:50ekyN$!fjNO
+V00:DETI coin 2 'm(9.b$(G1?<,A*TCzU]Ss.7Hkk2F[sqV(59t(1xyz
+V02:DETI coin 2 L1>uS%UY!AK(mZ.W v$A?H.J[p}6?R"E%UC>qB_;b_
+V04:DETI coin 2 8Z@!8*fopWeJB[*<;VU)v5C_Fp:[`qGzX(@8j cFyA
+V00:DETI coin 2 b"-x"&/__s4~M2QA@Xe&|\PHz ,iKC0*z:q$>*0Cw-
+V00:DETI coin 2 bgy/z2BTV@}g\bU;vs:/tR[5;:Vb_H6coo]b_[V"QE
+V03:DETI coin 2 }YrB;s%)[FA"}!!8w5cp_'sH[s;t?}Dbffu<gc9$Q\
+V00:DETI coin 2 5N)g}e!wMsyy?uRE+^85o]C>)$`jl.GmP#8_/2B~&5
+V00:DETI coin 2 VT!7miLF.?88"!tRGW-8}bqNpw]jf6 xCV>5FPsf53
+V01:DETI coin 2 mrwk{Ts7e/ZjgQv1YvfY;''ss'2n1%U$+vgt>')\;I
+V00:DETI coin 2 : S=gEqfN1>_AoPhow_ycIiv-|NyXU2(%(r[b+S%),
+V00:DETI coin 2 hCO[O~1]?tebJb4cjnl+;\<RL~/a3c8H=G.A]?wg4X
+V05:DETI coin 2 ,o)LYDFc3P1=`G5E\xSVuZY0^2t,hHp`M9,cfid.ei
+V01:DETI coin 2 h!$KrlcfXov8"MdyKWK*)O/*m?As+_>\S>tlLqM.|m
+V02:DETI coin 2 Vu&c7%1ei3j2]!(mW"`M5mjN_~n(M}}9|gIUUC /e*
+V01:DETI coin 2 0Fuhrf`Zv<*aOOd[ z.u9/>#ER8`oIj1IZ_\&n;{R"
+V01:DETI coin 2 > 4M2m\$E/q)h2a>h9Bg[;t6r6vUSW/sxtYNUvU>\G
+V00:DETI coin 2 mxL\DebCYj*5=veHp,]I`!Cb2Y`L=-*mxOIGQkc|,`
+V01:DETI coin 2 !4Xp8xLgCOC3!O^7Y[:9#|r'i+OR(q-=.K#X(p*R'A
+V00:DETI coin 2 1f&csg29HJc.b'O0vp_PVgUGzEK/]I+I*MXp@)nR-K
+V00:DETI coin 2 yVucZ,bv=p7m;[~$i`T4]0U2`>{)1uv?2JB#JRqo]$
+V01:DETI coin 2 WQ%>;Rbx&%s#YE3v+t_J#3=q)KCD/iwMf5[9L$zbv1
+V02:DETI coin 2 7|L@]_H:aB?$n".!}b*^x sWGn_<,=BO~=8`o, 9/l
+V00:DETI coin 2 `I&*2."%?8lCVd;#S^r<j_~R_6pHE$r*KA%E_G_Xf$
+V03:DETI coin 2 %s1Eg[[aB~2scr,f7(F5DgFAR[(ZrW!.yzD#/hMY18
+V01:DETI coin 2 8oN:NQ$>U$?}pT740|&\#wbMXgVazdRp"aD%rPH("m
+V00:DETI coin 2 Ug*1Ey)iL?FSppJes&H!.7,mfC${-kUAQ)19o;aHT}
+V00:DETI coin 2 2HY=h>Q}PKsrIBEH+C(/}l`7hbso_@{PCuC9l3%NR9
+V02:DETI coin 2 ZV<<V=;8?!+zQ(aOAN"AzxL@rtR't;~*sFOUt`cO\)
+V01:DETI coin 2 N|"5.`|/[QTtB&_9gI.*L2EUzK/Cs!-rI{$+fA(#Ny
+V05:DETI coin 2 _E%yvRQHx'<j)P}8#LjF7my.c;Tgpss?K}_]{A~vR\
+V00:DETI coin 2 M:^h&Sgh< EU}T#\fzXw=vLxI%wt`[msTJ_F}Ac;",
+V00:DETI coin 2 4"0(lTjO?JK~,g5gDyOM%]PkBp/AGCCffQK)fY49dX
+V00:DETI coin 2 @w9[f.U0sz,iqmF'xB]8V{-."_2b-HtubWUS.B-DTm
+V00:DETI coin 2 $n9'?FEQ^'EAmR\4P@OA.ZY"YP?EQVc3Vnj$$<1{c~
+V01:DETI coin 2 -BR?,kZe5W@OLrF$!=PTBH$>E17WjFk;F])(}\49 U
+V03:DETI coin 2 ~KS2HXwfF%}:uzl_mO6HM[{x GcS#8+tDS4bWiQ%;d
+V00:DETI coin 2 'rHsqx'E5+`YbP]4n\ER5eSiEY_ {.WjNh,0%Rc/o8
+V01:DETI coin 2 Ye&Pb^7#BYs+~'qn7u~rW\k|aF_xO84|<fYk;p>w=o
+V02:DETI coin 2 2[ToiU_j[(VrOM8vsE Dr/)XXs]IR'8]BSL+rP"!<:
+V00:DETI coin 2  @$}29;U>PaKS$)%Ir?YlKvyw*celK}AZzw'\bRwES
+V03:DETI coin 2 &4[O"m_o*.||ACDf^)7{\`o-]p%R1`1hXSpi"fGH9c
+V02:DETI coin 2 y|h"'[Y*@LZeZJf.A=JdEEAqAcV9@gII0_39H8"PFp
+V00:DETI coin 2 ml(]jDVolq*!slCn9l|~7'*ildoj$<a;y"P9aE#:Bt
+V01:DETI coin 2 E!~/0p&2N6zcULfy8B[ywC[}Z7zm(JvUsLgk w_Dyp
+V01:DETI coin 2 <psFIgRmveg:M'";bzW,ga79b4X%0?B?(N#-uoocZS
+V00:DETI coin 2 0T(v[)jbQpbNz"y1?U=?WF>iVF7(~lo_E.NXPPBm(z
+V01:DETI coin 2 ELCcK(I'qI2?5R. I`y"y5n2BpVUeo*On|j*/M}JBb
+V04:DETI coin 2 4#$LPlYBCR]?dDx6^~8Y1#.r6 resm[ti7+9O~;H$t
+V00:DETI coin 2 CQkqQq[`PVUb0}-F.0NR9?Y[Ssa>]I;!<ZC ^Uwp)P
+V00:DETI coin 2 !6W"sK'`wIi3q}NBo|y7FK!9wjN=PNQq!M",sbi~!V
+V00:DETI coin 2 ;V1Qq0V@M+93q{V/,MV{m1Umv4M]h=~1l(,}9'ZWL.
+V02:DETI coin 2 }rK\C\hC%<9.{`V;h+xwRrj)^!2zF?XZHP@rI[pnf8
+V03:DETI coin 2  ]@H;?$wrXlh<yH~]zhK.JGIjsDMW682\7H8R;Fj?<
+V01:DETI coin 2 `Z3(`C^CZ{P2_8B!pYIdcj_$c`}ngE;PWK0WljySV;
+V02:DETI coin 2 e 0|@&y,S1`Hh7RB~%xqq'UoSnWSN[u7c@mFey>@E3
+V00:DETI coin 2 EtS}bmpo<n|O:0hv%~XFR8N:U0^v|r5!"@LXbZ!{J@
+V01:DETI coin 2 I2$.SQ{]%.y[f0i)/I\SFA`f9jPO%dlQ.cE"D@5pLB
+V01:DETI coin 2 +vT*btmCO-.e|@xk$e$tUR9Z64u$N0nlQ~C(|1Z2Xl
+V00:DETI coin 2 hye_Hz]nK<$|PV"b}/p!<F0?Y1]9. P73BLeegWv79
+V01:DETI coin 2 %O7,ojS`%,j\a\z 2ga:k|M9QoW;}f <mIb9|UoPD}
+V00:DETI coin 2 }o>?CWLg8\crIvK$=\<?](y{&h5V$Z22bo<s|9yrAI
+V03:DETI coin 2 ,Lc3J=SW+[_B$sD@ipgRrtL(<kBbw#J4XJ:6RuChXH
+V02:DETI coin 2 e;grz`UQaA~orr&p7!he>x]\.(v{caQyxX<&I^E}{j
+V01:DETI coin 2 :JQ,111Op$I#T8Rnw<}h *FLK~.se*j#o"BS[o;hi8
+V01:DETI coin 2 33PO*]+*MS;8:v6"Dm)6[dljJ1ly@;D9+8rF$'GBu.
+V00:DETI coin 2 )eRykKJj3ScS F\EpS7Y_fG9&m>tdU`>'pct<%6]Nc
+V00:DETI coin 2 ZCv\9|c^n6N7?FgiK'L(FqW?zVl>'4<A9$)'eAk7SS
+V00:DETI coin 2 ?g.EA9Nm"j^}Z"<'!5eSp Hm8>54e?,>^^"yZ=xT3s
+V03:DETI coin 2 UB/_>B_Gz6Y<.1q1}a5PA=z9frC@ vkfj]ELq\p~|{
+V01:DETI coin 2 Q"sYXcvy\TP(R[G2/;?qi~&Pc!p`pTwBV$V693L[*A
+V02:DETI coin 2 Q(\m=fFQ8;9|i|UK/Gt}%yNH7bM&je^,Ey2VT%FYnj
+V00:DETI coin 2 '7m[x";M<@"\Qps[<$rJA-3g+?Cb/ly}8i0P'4l'O'
+V02:DETI coin 2 {VSSKChDO4P,bj% &gB4I=W^n;Pw-oj~_@7g3>?[V(
+V00:DETI coin 2 |mo6D-wapmi.p"VTlRIHM*'KO$9=Lee"LfUYB9s9_7
+V01:DETI coin 2 #q/,Y)}X}d<HQARwQ/35?REUMts`Ujw]ISF]]@C':B
+V00:DETI coin 2 }ip^.2TY3u"2\4;_<eiTLV9}.GCj;2S9toL^`,%Sks
+V02:DETI coin 2 _ww}O&9A|z/kPo[|$&RmefUl$oZ2t ?xs<vFSW@gk2
+V01:DETI coin 2 V,iKf+c#xA6^aFj,bzXN{/U1HvH;`z+jR0NmPR5u(\
+V00:DETI coin 2 qm2k0@,,\%5mu;@^Z %4QI!c*Efy<y2l,A$dg Im0k
+V00:DETI coin 2 3jjb^#07\)!5h+iSo/zQ5V;8ciwl;NVn!8]rF6BXTI
+V01:DETI coin 2 v?+wKl$sPq13U #ucP.zF[ x&2!lqH%x$O^):rVv#l
+V01:DETI coin 2 R]CcJr&l+"R:c>1F?WWa)<K(z#JNif`B$%S4#EgOHD
+V01:DETI coin 2 k_vB e;lQUHH@\O$1dK8)aAIB'spqLHie6Er*uetM-
+V06:DETI coin 2 E$*^Kp[7UG:<|}EON#]]us!(O??$4t<`5[@CrS2sbp
+V00:DETI coin 2 `RKr0l(MH>Kw?t`-}]ZD2OC9u pA^bh]=iww?CarA|
+V00:DETI coin 2 ,+["[IDK/V5P_8P{2;llxLgM@qqB5!Lh8z7\6K0*jG
+V00:DETI coin 2 wR+D! 4VoXZfks6}r'djgy`BU%q77st1w[H&Ptf@K[
+V00:DETI coin 2 a(kz$1;06Ffcm CY?~N`,39^>KhN*^'/Cb:0Nr:_:a
+V00:DETI coin 2 {2RmK*pE%J6`R8\bK`3)IL_W*$m\iF4p2c6&Ly&"t>
+V02:DETI coin 2 *D2h]EOBlal&3Y&bdgL UXi-'O]mN"L7H54iSQ=v;G
+V00:DETI coin 2 k= bAp',bVo^s7[3vc>>mF5lKVwN`!1W<P7P[S"Qcr
+V01:DETI coin 2 Y)h?4xL!?;}OsAiJRhHQ *F"6yE,hbA@j&L]BeOU[/
+V00:DETI coin 2 |8AUf|BB#^1D-4ki]'0^]nG$&Uf?7!i}k$|$qxibg!
+V00:DETI coin 2 wGf:5l_QGmYs(.*mKX5^H1?AB21`[7>1<pR-5/wd9'
+V01:DETI coin 2 Z(&b|;:[3dUc7}`l:gl`6hUr.<;GE{h@/l'pCKR#9M
+V03:DETI coin 2 \QmdAPlJ1l+1;Gy-F-MHaI`Ka~QqB1\\zOKprB5Ok_
+V01:DETI coin 2 sZ>J._UBfSvDZxemiAy;P'RQ"hs)T$0ny`PN"fC}R0
+V01:DETI coin 2 =b/P93Q>gAhmA'<eK\I>AENz6&zDEA8Kz )K^QM@ %
+V00:DETI coin 2 ;J|91axnbK>]*k@OOclb3(lWCIZcWkH!FfJ6(OdCq7
+V01:DETI coin 2 8lYsYP?itML2z^`RsgAUEC+B(ZmeAtS'S<k_m\vgAf
+V04:DETI coin 2 FoZ<5?OkLdHy-55<7ulvH|^swZs(bn\7F[ZtNL|xb[
+V02:DETI coin 2 Li+?&; Y|{/]^aS!$vb*}|%emC*nV.6B>KiBLd@L|U
+V01:DETI coin 2 6?cv)uyXH>J09~`Qv8jD-c[692N Lb"hKyG$48}FcK
+V00:DETI coin 2 b|,O|tWSvt:ED'a8jO>w!/IuZyW`{|\OB.gWK6~/Gk
+V00:DETI coin 2 ?.q,T1+d:H[av]Y2+LMP@a(Y7>}\@I]'CH]4UMIQ`e
+V00:DETI coin 2 0}(VaSj?#3W&tfQSc1WP:(RqnBqSN?%t/`H!u>.vay
+V02:DETI coin 2 AD1'f}jpy*_E@<wSEf@rFB'zVkJ/QlGzd{$(%:m%+X
+V01:DETI coin 2 5Uf7BttYe=@FU\ {Q;+<aHUY@rTm/`?{2!,5a[IEEk
+V00:DETI coin 2 <zoM5VcP}twgz`|Q}\_9,_@[DM"?mD+CUsyg7M^Vl,
+V02:DETI coin 2 dsuK%,8RNPF_bNBV^? /"d!z|?glB>vs8E$}(NyrDM
+V00:DETI coin 2 Vk9]z/)O##jCS({kRt~(Q>/l7qHh'qKSe+' 7&N$+G
+V00:DETI coin 2 v}KSW=}lP,:`wDVT%z4M^eb!<zsK,z(zI,#QZ~ZR&6
+V02:DETI coin 2 *HpV`aAjA50?1Ozmbb/QhHp6Re1(s3pL&GfW\*\qkP
+V01:DETI coin 2 .:#sZzkaUH*AMe^VF3<SK{h\H(Y\4eN0)qPr+Bw2FC
+V00:DETI coin 2 ":{E]~/@b5?1R*{U  p5gHL^d\0+[vD[9(P ,f}eKR
+V00:DETI coin 2  Ks\3y**IrP>_z).UpQRvK$gbO@O%fI\t`]aBPfAdp
+V00:DETI coin 2 Q7%nmBU5hxkKf3bVw?|!oRN(_=6+4{QU\w ci|BiRc
+V02:DETI coin 2 ]{dMz]M0\[SpSK$NrHOyCa v%1 ",pS|oY1;BOKuE@
+V00:DETI coin 2 {yXO$>Ke](m)FX{_uv"s;i&[s!PcR<TF,i]B[V*;yA
+V00:DETI coin 2 cZ<P3VAjUE{OWP``mUZ1E!/8f9?f^pmjX,7Kr]q24@
+V01:DETI coin 2 *U[P*sX4*$7[-P]\CR{Lq0,hBwfI9c}_`Y_jZkS"a[
+V00:DETI coin 2 Nl"8-nZ8_h\yNH'  9]fe@{V`tc:KR<`gBI%f:5z'$
+V00:DETI coin 2 "kr,;.dL}O2CS=Gmm#o8XlDW)QiRq$EDKs=22ltU]1
+V00:DETI coin 2 bvY=f EeU,`+L!"9.< ;Y[<7fe{WUS)9T|xs51T^hE
+V00:DETI coin 2 0V|^",,B^lK?1AiQA\eZE2/1`;T+fxnr(*if`|cJL,
+V03:DETI coin 2 c3$XB{bie=eOsp5/eMGjtih-(E+_G{9&,}19DAz>b(
+V02:DETI coin 2 Rbg2Dd/Ywf-5=W1D@]Bn4#%$dVewB}h#RU_%9~a]l'
+V00:DETI coin 2 jlh'2Ep}?0.9p$'E=Yk2pV'vV?llB`c2Y!>C=P6k^i
+V07:DETI coin 2 oh]%w` lg'mdn[.@fB}Y@( 3B."X%>'6.(&U~4Ptn]
+V01:DETI coin 2 ac$NNQ6yaV_u<dL7^3teIRn[GU.U$pd^'9,SkN>J&7
+V00:DETI coin 2 >t{~2XqrqC4'KC$eNTjhGz?2N|vIck)]t&Z,HuI<y)
+V01:DETI coin 2 ^aCN &?vpw;a!]| Xw$n]>Uq!+q91m&zQY0bSNc((]
+V00:DETI coin 2 vH\:}P_.iooVL<=E4Rc{lZ5f}YsFcJmS!UFW}>;7WB
+V00:DETI coin 2 1hs~{R='_8:7FrA*B>G'z!Y/>;ODe@L"Fb/z!cUefK
+V04:DETI coin 2 :$R|"p3KAURT{F3cR#Q[jl.&?G/5#]2+ /Uj{Eo'Bi
+V01:DETI coin 2 M4$c0,M=\Sj4mir>/(rpQdhYj+FvCoS[;D}o+N%v9X
+V00:DETI coin 2 9yV=74OV,B:X`8duWK|V^O#9LIpwKU&IRk]4W@RZc4
+V00:DETI coin 2 EqK2!*5.>])(%t]P865v%?/1K|FE8UbcxY$%LztS![
+V00:DETI coin 2 J,;oU)84fK_P}MJsCGPiX/qy)*[g4;qAjWk;;`}!B-
+V00:DETI coin 2 K9Xgm6_/7UAf|C-~v<z`v$sXF!8y"A_xdH[YalzW|W
+V03:DETI coin 2 v%0[ODlVsMA=m),b?ZX"s>ON*I%&kuB"[7>]h<}!/D
+V01:DETI coin 2 #Lw~N,8(PJt}/AuRkrsn`A3 N}BEJL@b[2Wh6[0#9Z
+V01:DETI coin 2 nF\]k+__;);oy=5._}g{=B,8KH`vAvtSACmt&lIo[>
+V01:DETI coin 2 Tb.yjYt1<r7SH)H@dqcz,<m&lK`EfIMxBNs*72|o,g
+V00:DETI coin 2 "L#L9^hZE[+N9wK?y5wWFr8me}*ye0C(Efmf"0q/\]
+V00:DETI coin 2 .&A\&IGf,MI7S<orgCH3C\ee,gMR^_>eE~$"7rKC?D
+V00:DETI coin 2 ?IAI[&RBAsAi&LR\+P6fm0`&w41Q^\(K4PVX*H=z7G
+V02:DETI coin 2 [$l:/[^Epx;v5$l$U*%4L`!_hym\3/>7{xID+4&UwI
+V01:DETI coin 2 ?&FLa4X&'6^nqe4SHZ#<Xp p/RupNFx]T/^-}vv7*P
+V00:DETI coin 2 /'_9[eO,`?I7+y+NcyCW`,AsOu1{EAKA7O^@{zjUu:
+V00:DETI coin 2 5Lb|y[?<W6 ,u{Fs8"t2W4F/dI;^/4\31;rY-zf+F!
+V00:DETI coin 2 8v CEI[2e 15U5oKhK:,`_9nLR'*g{?()RC5u)zxHh
+V01:DETI coin 2 WVs"%@(d9^YBqYS@l#2LDgqF%Ho+pDs[O?>~<s-yR7
+V01:DETI coin 2 .C%~f>u-k')bq27'BnoI26WoPRwl=,y*Ox]/j}f9C!
+V02:DETI coin 2 #OobO_b>q!Fk9_F,%8VA|)I9[J)"'pfg%0fB>zKkH 
+V00:DETI coin 2 0ER`,v0RMCX7uU)Mb;D]%,K2%n$^yLsUyu[g$vh\\s
+V01:DETI coin 2 /)I?U!(Y~3$e6PP#+Vnb!>![LB,;"O+xroI`k#W;HU
+V04:DETI coin 2 m!stu4n@s*ucmB|cX&I9K:\2y"[Vm`+*F>0{gH!7)D
+V01:DETI coin 2 FFnKfFEO5/B"LOI" hIOi bBCqwk2+|+oNFjlf[(3}
+V00:DETI coin 2 H `_q5G."}CU:o7\M>"7*ED}iLfhNg4$RTY/<0u|8*
+V01:DETI coin 2 TaN.r|;PEQ#g>q*EEP+N-ryR^(Q8L-0)x+:'bv*m/+
+V02:DETI coin 2 %!IA[G,B"fO7j4@u"'}msN"j>.p'7tB6)VppwLFCH/
+V00:DETI coin 2 N^s$vM$HC\n6o5/Zt>YX,:k4CU1-|Ug!1!#jTZ0ICa
+V00:DETI coin 2 Eta/oe3tk>KURi__bQ@ocQ@@l[%v{kMa,oOf-Y[+|H
+V01:DETI coin 2 'J?^?F'OB*;%fc1c`f1AV K!1UO$G~Wkon|@<0FTIL
+V00:DETI coin 2 5~tc;_PzCr)sb/o[hb2fcIebl+lV<LbxEYi1!j(Zf#
+V00:DETI coin 2 U1<S]ICNk ??sj\I,a2Z1?Q8(uZ;]*+]K lo@;u{l&
+V00:DETI coin 2 03pS|U )1vj1C0*2x OK|7@tp^5$\ ~mAL+s;|Bx$l
+V00:DETI coin 2 Tc!gojv.7K,qC:+<!7pFY@e+`RPT'A0y=sH9hcG>wq
+V02:DETI coin 2 {yIC}muG'C$UYN7~"FP=^j@9yCy}$xU>5c 8X6K~\<
+V01:DETI coin 2 !&}(|g&PIl,{y`fnURpxuGFnCOg!/i%xr1zQel_5Q,
+V00:DETI coin 2 jsy_B8h+mpNn9^:ui}SI(DnfAmg(]t?'/m(2-_h#W^
+V00:DETI coin 2 [-<U$2(/+cFo2xd"yS1;g1Yv=95%\!->;x%Ui.8k)/
+V06:DETI coin 2 j\1F,%8)!0Um=Mwb;|j;(!zU$r}KMgbVil@EGN#!v_
+V01:DETI coin 2 $MWn!NNbI_e7I "zX('=mpH04:dKLBxAB8A3>9XJ'N
+V00:DETI coin 2 M"}WsbY,jK,U|Tj\bXIoElj?.+7T2JGd:X&YQW?u; 
+V00:DETI coin 2 hYp$Iu?n2>6tCyz:zAxxh0"{(o^nz+etn|f.1{;.~ 
+V02:DETI coin 2 z* 7HSV7<chlbz5JoY5v/|7|ICQOrTi54xS%A2tX8o
+V00:DETI coin 2 *5@^S+T.r&o*Y((A?R2?A C+6v1C(B["E{tA9YIpq(
+V02:DETI coin 2 b!Ode@2i()Kg_/3Qg_[*nLvt8r=N> <bf^"bJ;>o g
+V00:DETI coin 2 'Ovr'Tw*!EYmE$qQO!d8N#1;t(5}<F+CA;Zv3`M/`!
+V00:DETI coin 2 aw]]jgxO=W@}nB*;0=fruO9`1""aWaY :"(_K$R]ve
+V02:DETI coin 2 {U<iz9p\\"rT4Rvr2!fW6L">w3DAr2QVy\Qx6 i6P9
+V02:DETI coin 2 )uIKOx}PD5Sn'C:jAP*N_<#e[>bf~MJ]VEr+wHsLS"
+V05:DETI coin 2 "*:lc6"k9veC8tb8R]rQyf=ju<0.hE{z@etHm(vw)p
+V03:DETI coin 2 i7P M $Y*A+or7L`9r|yy_MlSuYf-Blh6vgZc}`@0c
+V00:DETI coin 2 ?pmm99(z0?4N[Wl6oMj;vv FudzZO`(PQwc-"v =Ow
+V02:DETI coin 2 .~25zk</braB?&Kb5"mPgc-DFl11%uisS|\sdb.`SX
+V02:DETI coin 2 E&C{1kUle(XUm~$4Z5'7;7`1e(.~Qm!Ut\*T{3Ap;R
+V01:DETI coin 2 vKwgBg^/xCuiep\?th!\*xvR]l*1""#Pv`4@42B"1.
+V00:DETI coin 2 +Q^H.iz07MU2.Z/Eu[y=nNdzccb06p>EbOd@_V@4]5
+V03:DETI coin 2 !ptS6uDs.Tv6XI\KiaTlcMc%lN[7K]ro+$i>@A8A1Q
+V00:DETI coin 2 NR$7VBAUw U5O82 :Yj"/?fwb8F-LW'%N7K%(>rn@N
+V01:DETI coin 2 U&q7Li7{x,k'e<^4<vS(]$y'P/]_]>(RRZS0#e?,3|
+V00:DETI coin 2 1~5>8}%-oJiAf/kVEAR8#f_U/fmhaEWCG5(!a7d44l
+V00:DETI coin 2 OCqcxD'I8FpKCe},(.L,%#n!O"L*C*&%$ICq+h(`L4
+V00:DETI coin 2 /l"gzO,h5?4P@~3I1mMAmX]pSI5n7UFs*JzMwZ<^~?
+V01:DETI coin 2 2VA?g.PwD`w:u3eHHlFOy?7"[gPvRtYGS8|$"o<(KH
+V01:DETI coin 2 (]s8jhFe&Iy#\-;]4*:n)IZ8zEb-I$1\mRj0_A[#\!
+V04:DETI coin 2 z jr@tP/^ )(^_K@VJOe.2SV'P'(n|:)NG| ,nX,Yf
+V01:DETI coin 2 Lola]+BDw|ORk!0 ybe]`fqJw~nj" H(/j{RxEc\:&
+V02:DETI coin 2 \][6'M|?q}2uk/\(%}.DEAmW)))JyV.NS\P8V /l[<
+V02:DETI coin 2 YKKK`<F0g4y(i6./0[\E[>>6v,\ @\f>fdlzh2J,%m
+V03:DETI coin 2 Z4N@<$Q!'O~:N$\9.cE4eX:iCU+1{O(L8u'[oB<w93
+V02:DETI coin 2 f!y-V)i;(*J]^H@s)?'JZL"'<z+OVp~~H<VI|pHU/@
+V00:DETI coin 2 #Eno;?-&4? /@s(EOe|sfW]QbQM|bs  +<v@$r@@ q
+V00:DETI coin 2 nIb(,vMo!e[(SyI$pJmW`@xS" \Vl2g<'`p'^AV2u5
+V01:DETI coin 2 31/s?;j5bCN|-G[(1:(+QrqZ6*B$V9p|Px]RKji,%|
+V00:DETI coin 2 Ra>TF]lBA?l>2| !;*$Te181O{+Y2kt]Pn8QED'4hH
+V02:DETI coin 2 T>)/{Z-t!p>_CuTL&OS1r"8:i'M:P%~1-fiS>nh}Xr
+V01:DETI coin 2 \RGIyBT|)tR`<Q)CUv#H["3aKxJAet E&BeM9IM#UB
+V01:DETI coin 2 8Lt?1)^YV%Pwui}8Xr>`g>Z+U*/iBIQ}WGI^&H8 f+
+V00:DETI coin 2 ER.*_Y;A%~PV6CH\a_"a-:5F|UT+"!G_ezQ=G2[Z>z
+V10:DETI coin 2 -`|H2h;qPya5?'Irbe?l11f\8tl+cxhc(l<b}@j5+T
+V02:DETI coin 2 utSFiSXLox<l?z$|$apa?< KyUV]eU,3wQ.`;$Sn)y
+V00:DETI coin 2 ILptHCVJ_:b*mly$tmawKsiw*vHz1V0X.?/Ss'>9n>
+V01:DETI coin 2 l#p^i5ne.laywZuWypYsj[]e[Vw2%G<\7+Z |#>5p/
+V04:DETI coin 2 @thDsN!1"Tr0-w(p@%q~IJQHp@bY"sjLB$7soRD+P4
+V00:DETI coin 2 tr~In#i}g8>lguEm`:!P9$ex*kkdW0BHGt<d+HcY2!
+V00:DETI coin 2 Mu5`iUW1C@>j,IYlXG_YM-F;4:`.2!Qp!0'YNU[Yq 
+V00:DETI coin 2 m;N0(Ip,%hYwL:rrNt/'B.XX9SH_LvBf7\UQ9(EZ+Z
+V00:DETI coin 2 k;pnNlAim+LcV\U.^2wK$1W-*t&S!Z;r]trIy.E;A`
+V02:DETI coin 2 DdDS1 ]9pfi9ee\?4V}Rg,y(;X%"Ipu(EG#ldBXaY|
+V00:DETI coin 2 g*1*~FI5l;Bc' *&viw_J2Ig65z4ArC$[w1,fAPXt<
+V00:DETI coin 2 #8ZjM[V*%,i",S<bUoUH;%Kz{ox+/C?.D={Hb,<sZ7
+V01:DETI coin 2 .OjY.wZ,?4Y< k*re"^a-1xT?oMM7m(BR)9)J<Ib6=
+V04:DETI coin 2 yyS>/.~`Tc"b|7ShX ^ztEw3#oD6yWd[3fT_,Sn*wg
+V00:DETI coin 2 8Xe'4vP'$`kkCKTji!r~,vsGnRd,=~5z1Xp\1 44zN
+V00:DETI coin 2 PHnV}>m!b[l;9YEavS(fF*JlIaa}2wZUk_TQs/kZf}
+V00:DETI coin 2 RZ/j]_c.#,'e+H#bOo)14ir7=|A[m9'g~pANQg clD
+V02:DETI coin 2 )bZ\bx\gS,q/.$rAjS]Ludch%<l9LQEmB<Xb>_g!q!
+V00:DETI coin 2 uxIf~Bg#X]BaXr3EzXHRABJpGGXTCh787/ySl6hZxt
+V02:DETI coin 2 (r5R8};uc RfvBoYlYdLvNG9;@6l=vGA1il?!UKo71
+V03:DETI coin 2 4+dm4uRy.sz(S%*FhR9jR:_Hr`(5<k#AadQ4?`<]IS
+V00:DETI coin 2 -V4,Bib!SKe{2!Q*=SvgLlViY/D8)`;S"g!W;"mTPM
+V00:DETI coin 2 i6WngK_'Q?o"NXI"=St!R\i"iwx]Tf}5` t[7|zSFe
+V00:DETI coin 2 7sG_+gorbm-<%~p|I|uLX|[GW"Fjh.$K\x54c}\#t%
+V01:DETI coin 2 UO`/k9Zp0\ky$&U]w8lFpYc.ke.(5|59j7whBh9^#!
+V00:DETI coin 2 \8n'pr^}g}&(5wvLd;+kjf4Xp9/S3IV{:Lm\`~pt&Y
+V00:DETI coin 2 }#/_FLCYD%vFu.UGbLB7Fw$Pl,2m#"<)OS<h]u(D]3
+V01:DETI coin 2 ,YK9Fgi1+AZ,0gVjWH4Db F0TwD?SDArnL~V4H"v|Y
+V00:DETI coin 2 ;GV>%(18^h:YeG5L3>l^UNr+BcMdiw9>4?*C<n[5EB
+V01:DETI coin 2 ?<FzMN]nD%_?VTvwJ0N?NvP<Ut{./!3O^1H~f]DCd5
+V02:DETI coin 2 '>b:P(NXr:5.OHVD'-OEXi_2_o3U"\y67i1!'H[+j6
+V05:DETI coin 2 ooLKf_sehVev 9Sk_i7ifUYH|F{/[y(I,EUTo<rP{$
+V01:DETI coin 2 CZgj{&i[9+1^?IgGH+@=HIkea*24OF6Y|>((\,>}D:
+V00:DETI coin 2 Xl*<!emR9'VDfbvU5MT#}8fCh#\ALpb#VA!+5$8 r|
+V00:DETI coin 2 /zCpO\Vm,Fk~<n6*bt.}C1ArF c6$s%GFPme.7L|i.
+V00:DETI coin 2 KE+c2L76UkiUXRCfAxXf_W7)ypjp}m_46|G@+*WOyK
+V00:DETI coin 2 Tsyg+QPIL2*r]j>zcYH@?<EXklo&Nc7X:AUK!UR t/
+V00:DETI coin 2 @i5+K?f;o*i9ZZBz9=a /xg9RISUM?:eeRHnLSmtzG
+V00:DETI coin 2 u!JgMa*piv% 8TEee.$2,%W~Ezwn[!cs)',7/uG{,y
+V01:DETI coin 2 }v>&;7'UFbw"\Or2Ey|<C[s%OI"ydOh5oXKwD[+tkX
+V00:DETI coin 2 TY|wcKWfrTF!}`.9AV[9]ZX\Zx>qT\s"}][7gNy+7$
+V01:DETI coin 2 XVLX3?9*BMjEYj>%\0#pi=]ztO_VsH-[=Y8[l03;wQ
+V00:DETI coin 2 nkc3mPr'2t`D"ci7mXQ&)R>"X_YR:,NMb5jNX?'a+>
+V00:DETI coin 2 b[LSM=g`fl`75gmA]*5XaSy((bO}hBb2/i04 E%/ i
+V02:DETI coin 2 5|X+Gg8p`eS<|v0-[IS;8zpmTT*sO5@],nB".XT19$
+V00:DETI coin 2 (IIh26gO4DdY[X9GoTq17!-?myPl7LVurCt{fby%!K
+V01:DETI coin 2 9pt\<?,Y: k1?RWc[Ft%VO,&yElVc9>xgV8,H&7kRX
+V01:DETI coin 2 5#`Qozs}#S5W+@m3G $<ekIUj8J1wd{-!s{0SjzKWE
+V00:DETI coin 2 ]/+5ixOO(P_+%oIF2D5H+byS!i>qhw:["gRl(aa<7k
+V02:DETI coin 2 8AiY(*{|r-$Ea3+;>8wc*v"=-9PHVK 4P,P!?0~4|J
+V01:DETI coin 2 ;sEl[g;+hF4fP>I,.yF-6N45C/A."b,e`9HjT`rL_y
+V00:DETI coin 2 x?_lQ[L)zgim$Cg:zWI1Rpd&?m/wY|)f%UO(V^k]Ap
+V00:DETI coin 2 AI7j(@}`'(tE.  2QtzOEj/[9"cgj<g:AlMUB9a<p>
+V00:DETI coin 2 /,Xy3y9aVb3[pQ+~6mw/+?lktn3O`CSOg8_8 bfJX&
+V00:DETI coin 2 f;?L0I$OmNcpr<3vnX9'oA,I2'[O6_*71[ljhr?_SQ
+V01:DETI coin 2 8Y<?\DBRv2!iL!q:2BEi )`CBzOwPkqLl}.j{9/b|N
+V01:DETI coin 2 BPa/p|<}KtK&.lT|FBaN";BW%y3SVW!z86BEGZLtJm
+V01:DETI coin 2 OP^lMP 1!BS~lE?!W.,4A}>5MH94@,<Nm]i\ep7JRY
+V00:DETI coin 2 N,UJs>tw"j%<O{f178`O2ucC| ,!Txp"blm}!gh.rC
+V02:DETI coin 2 gr-k;UgQf~QY0SXu7Nzmf*("Z14Im\AU/\/w"$rg$H
+V00:DETI coin 2 v5c#QplW1IfKn4i'd>MN7[K1/xpELX\aTEL?V!#lb4
+V01:DETI coin 2 aAsg#H$cf(sL]Y{/ia1eq5>ufV&Xf/VxYBQ! T,fyz
+V02:DETI coin 2 P4lg_u:MrE<5`bYg6)xZ=NG#EIbi/aUYK[ j;y|,Gl
+V02:DETI coin 2 krI|,lCF_G]N4|GhR^<P!h\5A7W_~taa]4!1iH2?$X
+V01:DETI coin 2 UzPLBv)rD Xoi-,wc~CPWHDRlis++1-SRvPA?GpI$j
+V02:DETI coin 2 cg@vG;UB|q`?*y. Ie?lp_Q9mmdpHgu>s,'`i9qbTS
+V01:DETI coin 2 N6UZ;?n|s_F^r:I*BUwKO9KaIa,(g.qoj?tw*ViSnO
+V00:DETI coin 2 [O.V]N;PT/5lTC-{<<*}t^3Z`?n.a=ww(,29"eqLy'
+V00:DETI coin 2 tbv.l-UNf(Kt <w,Oxfpm>t0f;v4[rs9w6?G~[~"cK
+V00:DETI coin 2 NJ!u{Re>:Jgs '7hj!sB\lb1!oM]1Xq\'.i^8ym9@n
+V00:DETI coin 2 7`9Ewq=fJ^MtG(gqbIc<t~r3Q`bj6s*/Xi}:|,bp!-
+V01:DETI coin 2 !}/~EK7)|L.>H!B]8F{1?. sc$VVtg1G>-|`yP|7e'
+V01:DETI coin 2 P&iSjtgzK JvIxiI0Y_A?7< B>-%P/kkLXN0>yX!Cl
+V04:DETI coin 2 C9(y]U%"fv'HB$zI$#K'%=g{<B.S8gFCuF}7gA4GMd
+V00:DETI coin 2 #"CFtK)SH39x7%QleZ+QqCgj5N5{jR@HFEVd'$/{[(
+V00:DETI coin 2 Yb0a2Pz0pE-b6[vG\}4{U%Ke};P7XacUo#e=9<- yE
+V00:DETI coin 2 0o]]%8'J/-]l4\`ld~65lo/iKVw\v($F`14LImWMK&
+V00:DETI coin 2 /37T/"+OJC3/q9=/d|^r,Kbb&2M"L)4WPWV/><+49"
+V01:DETI coin 2 oP2duA_z6Cp:Ea#rgS_j8z\g~IDg_<9i,@0&psRYK#
+V01:DETI coin 2 bo^xrqSHT+nY;^)8vTOYC3?t^WAx?Fko~r:4?VKm]-
+V00:DETI coin 2 ?Y*om[HA4U\Q`]TS3?UhcBWB1"oATpw/4f(DpEU[JD
+V00:DETI coin 2 0"AK&\,gPrY15.q^BovjY!"%5g"jUY,6={\HK&4Igb
+V04:DETI coin 2 .Sl\Xt!1[l~L\~3wy5FlpHI<|$98 {/x|e"F*%SR"l
+V02:DETI coin 2 K`*Om>+EB4R,L`tf"E`Q)C"^?1Dgy"`Xi0>?hFi)B!
+V01:DETI coin 2 -e.2r[ $pi_^'K]KbA({Cx.GGEK'on4O"9\`R]r%[Y
+V02:DETI coin 2 -D5y|GtG@r}+w2ZgRn|_z/cVZU!YHUVAA_<3mqtQ1M
+V01:DETI coin 2 {d_?h5kst%yI=<pr?A`]K ra.lEuh9hQs%c=aW,1;Y
+V00:DETI coin 2 Fse[V;$:7%<E.A>ew'LiS$Osr(LIi{i;K9b$|HPq5j
+V00:DETI coin 2 Gj//7#E@'b\f"S!w#oL$XqeEG2vAy+box{HtY*p[AY
+V00:DETI coin 2 <V2b[<QC1"*8?\^Y8wBl!7b3oX$~5sLO~GuVvZ5n=W
+V03:DETI coin 2 gV{H[fFA3e7<yD|z1oV7Pl-j>y{rr@lCI2*/3m"7uh
+V02:DETI coin 2 4osEV\KWU]J|;-Ej{ <mPlc_M2$>`qYzx E88E7QxB
+V01:DETI coin 2 -[mJ[2ieOr`q}E|zb`A4\HK,fLGPhx r\)'O^jE.!&
+V00:DETI coin 2 ${KvSo7:!@X %}}jJ&/O)s@|$:!z,tY;w&O)'|C34|
+V03:DETI coin 2 %ss;S`U98k`r dgbgHT}unN/]G.}9k)&;P!w/M|`v*
+V01:DETI coin 2 E 27_t^j+zb >DYytOYLRJ'}VUyI%}7R;,!Yvw* e\
+V00:DETI coin 2 "c5s2eLUfK^wCO{8X6;3m5FJ}j2#|^`oC=/]6B#7)P
+V02:DETI coin 2 R6&tj'#t:Ae:XklZ`&Eqcl5?dt'Q]BMW*?7/(+X2tD
+V00:DETI coin 2 &bNE9N*K&7E;,H(7?<@'Uo;4|,_r{A|mb8,iL.OKl.
+V03:DETI coin 2 R;7B (h*aw__6$9(RU2<U%*\zK&&Bg89gL7Hp2Yv'|
+V00:DETI coin 2 )k9rjohY'A%_eF69b9kQ'+dt46b< + 3"~8$Rz54G,
+V01:DETI coin 2 ls[f]'uOdu'Ebmm]V2:$<?M%u!w7i7gXHSEyfEPjX=
+V00:DETI coin 2 Nz>vsz`>yt\KrrbQV';gv$d[;Z}<sMOZ7_S9WqTdI:
+V04:DETI coin 2 "gc(]y'w,YEGB$:8'Nhxf7}e(/GHe!t]}uW=Afw,y"
+V01:DETI coin 2 ']0]J,SWR|.^Xtz)5t{`T8]9t1qS&2p3H*--GqU;~*
+V00:DETI coin 2 FxD7+<]vE.~d5&WEP~0\=$eLbYq*1Ka1Y;mA32`hz0
+V00:DETI coin 2 ?R!/!=S>vR]"L1eSn&m<lMj!&/!]s:/rF8xkgAc|wg
+V01:DETI coin 2 ?7M;.hsRI ~*+"=)FF<a&?9ff(e_hjjcHa0ogNPp--
+V00:DETI coin 2 k-O6+x<5U1VRO%Cwz$l_Pv4$2lMky(>)MK][=S&!,h
+V00:DETI coin 2 \j)i$EBUw]buK(VA-_l}I'IPO-v+{YZ%e(7ckl' ??
+V00:DETI coin 2 dT}1-H'9_R]]k8&>M|#!h0<.Ks``Jbp;~VSD;_qsX&
+V01:DETI coin 2 xMeP`*3w#mxyu*BV<>$R7q}G.w'I``:/74P+d K# s
+V00:DETI coin 2 n8*x\NfS`!3SeKG0/9cAa+HCof@XlH(WF^t/=,/AiG
+V00:DETI coin 2 %pto\"hz*UeFNRDOAD<gIwkV<,8*u,oElo*XflXouw
+V03:DETI coin 2 ]Lz3Vfok;[}/-?"jx3eI_eq/{pF(ofj@e47821LKo}
+V04:DETI coin 2 _"@;,A016lS8f4A7b][9&}H@NT9GWo<zADh(l+[?O]
+V02:DETI coin 2  mu)hL9=sTZUoL&eZx9\7VZvA c(`uy XtV8G<4P1r
+V00:DETI coin 2 d&NH!Lc8z!:4TxDi]&n9cM4L!/nYDEw@oF-7 jCbmm
+V01:DETI coin 2 !N[m"r#rig,fN,BJ@;:^!\L]9;U*>B?r}OjS<*9U%\
+V02:DETI coin 2 '_3SS_A{_Pu&4v>#>]M%D0>(SlY)LG2[=:E{XA!e_t
+V00:DETI coin 2 qYgXK:8?q|^R]Afa\ycOIH2Le<E.LB,`EJ)AmPXv"o
+V00:DETI coin 2 p1P!ss}~BDay"`Fks%f4V}XUok>i,ij8!k;'cBMy&j
+V01:DETI coin 2 8{Oc;(NqbUG_R$E>9k%:Li3QhLYf59$,pU;VI"M!r`
+V00:DETI coin 2 I_Mzj?D+c@et(,wKEtm)#.PA_x8jlb"};<j3 ]/*#e
+V02:DETI coin 2 ![@<_O>bLkDCs,F3m^bZXBjtei`X}Na}Y@qmF'{SRI
+V01:DETI coin 2 uXFRt;@B`PtSvbWed`,uxkDid/c0wyG?mzBw9_KMu!
+V00:DETI coin 2 [K/fn,;9^Vr*w'-[y'@>-h+fy7xazY_PNmk5 C+zNn
+V02:DETI coin 2 H_os5mZ?s9_$f8rAcc,k\*e< Uae}=cP73cmHij>3.
+V01:DETI coin 2 (H,&W+z<eobi2@N8XVCK7E0 L7WRr6bn,fz?f.S<\~
+V00:DETI coin 2 k";lJ`-+0y2)a^7= GZ4yeg(2iy2,eo*[j7_i'g^`b
+V02:DETI coin 2 ,r6X>;ePm7r~JkS!U0}\UqfVV1~^-]C>K6|z*.x(]*
+V00:DETI coin 2 8\$o_leO4zHSi`4X$F":t mT@)01_{JX%$4v?9S'<~
+V00:DETI coin 2 052R(GYLE2\f}ySO`;h;jNMO6:K$]'/V~hk45w 0Y\
+V00:DETI coin 2 |($`os'yr f/APbjFEuK0`v}H+uS^7gVpV+eFs"C(&
+V01:DETI coin 2 yCt`jv!\9zy|mpCL\k!7If%LzC;;yo]M%f%F7>KqN/
+V00:DETI coin 2 gvVd7rXKUU-yS*>8E<aI//8[~*6A4+G28nwetY^x[*
+V01:DETI coin 2 <BDty4yI%R&5U ^r@krI$pgq^.mQ}?Amu6SMYqo"3|
+V01:DETI coin 2 RokRkIppCuZBj~yUj}br8.XfKt3B]|0X+9GyD=nIYO
+V00:DETI coin 2 <;lPP-gL4=MA(X(YP0KL?,`!%<]@v| 8fWMc1z=.9E
+V01:DETI coin 2 sAd4DMt&WQ;(|sx5#!G<o||3WB|"0Lp&j5q!rvK+=`
+V00:DETI coin 2 rfV]h:(+3kZl>h#|A9,stmAZ8U%*iNjWV9O+bkRy%J
+V00:DETI coin 2 )sCThn!5s%K,#[kF=jv^:#C#LzXf1iXc~pL-dgP{I)
+V02:DETI coin 2 ^h'RIo{4qi}T5p,FCc\^1qgnb38R`G$vz%@}sr_:K)
+V03:DETI coin 2 ^u3qs+xb2XTwy!)^uOoV!v:<tqj9)Nq;#|gI7<VwI~
+V03:DETI coin 2 2'Ej8DBNhphH%GBI1U\Ug"*eL"o}X ecb7XA"E[j9*
+V00:DETI coin 2 +yT(SN8 }bI(3LOWZI|fXo0ulb4QQ'*rPSZi`eO1KV
+V04:DETI coin 2 +yT(SN8 }bI(3LOWZI|fXo0ulb4QQ'*rPSxIz61$r%
+V00:DETI coin 2 tCb@E0tOg|v3D"XJ[-'UT2AMuL\lEe)"V>++N6N[=Z
+V03:DETI coin 2 ,&BeIf3zenJ*%7>{dzXfjDAGYKinN)05vU9.:x1Otb
+V00:DETI coin 2 HdVYa8yGKjjFMq"'?$4see$DwGIDMbm-eT|4?mhCj5
+V03:DETI coin 2 j;bk&;mf9!ZU+<'(0|?WVtsV}?C^3 HIoKzm5%9 n}
+V01:DETI coin 2 bT+~yVy(9w(`dF],9e'Xo.([B04DG/8V$NULx/=515
