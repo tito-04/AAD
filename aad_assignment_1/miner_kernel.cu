@@ -17,7 +17,7 @@ static __device__ __forceinline__ u64_t lcg_rand(u64_t state)
   return 6364136223846793005ul * state + 1442695040888963407ul;
 }
 
-extern "C" __global__ __launch_bounds__(RECOMENDED_CUDA_BLOCK_SIZE, 2)
+extern "C" __global__
 void miner_kernel(
     u64_t base_counter,           
     u32_t *coins_storage_area,    

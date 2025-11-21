@@ -1,6 +1,11 @@
 // server.c
-// Simple multithreaded server for distributed DETI mining.
-// Accepts GETWORK and RESULT messages from clients and saves coins to vault.
+// Scalable, Multithreaded Mining Server
+// 
+// Features:
+// 1. Thread Pool: Fixed number of workers handling connections.
+// 2. Connection Queue: Thread-safe producer-consumer queue.
+// 3. Robust I/O: Uses tcp_io.h for safe line reading.
+//
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,167 +14,236 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 
+// Include the Safe Reader (assumed to be in the same dir)
+#include "tcp_io.h"
 #include "aad_data_types.h"
 #include "aad_sha1_cpu.h"
 #include "aad_vault.h"
 
 #define PORT 9000
-#define MAX_BUFFER 131072
+#define THREAD_POOL_SIZE 100      // Number of worker threads
+#define MAX_CONNECTION_QUEUE 256 // Max pending connections
 
+// --- SHARED STATE ---
 static long next_work_id = 0;
 static pthread_mutex_t work_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t vault_lock = PTHREAD_MUTEX_INITIALIZER;
 
-void *handle_client(void *arg) {
-    int client_fd = *(int*)arg;
-    free(arg);
+// --- CONNECTION QUEUE ---
+typedef struct {
+    int sockets[MAX_CONNECTION_QUEUE];
+    int head;
+    int tail;
+    int count;
+    pthread_mutex_t lock;
+    pthread_cond_t cond;
+} connection_queue_t;
 
-    char buf[MAX_BUFFER];
-    ssize_t n;
+static connection_queue_t queue = {
+    .head = 0, .tail = 0, .count = 0,
+    .lock = PTHREAD_MUTEX_INITIALIZER,
+    .cond = PTHREAD_COND_INITIALIZER
+};
 
-    while ((n = recv(client_fd, buf, sizeof(buf)-1, 0)) > 0) {
-        buf[n] = '\0';
-        char *line = strtok(buf, "\n");
-        while (line) {
-            if (strncmp(line, "GETWORK", 7) == 0) {
-                pthread_mutex_lock(&work_lock);
-                long my_work = next_work_id++;
-                pthread_mutex_unlock(&work_lock);
+// --- HELPER FUNCTIONS ---
 
-                char reply[64];
-                snprintf(reply, sizeof(reply), "WORK %ld\n", my_work);
-                send(client_fd, reply, strlen(reply), 0);
-            }
-            else if (strncmp(line, "RESULT", 6) == 0) {
-                long work_id = -1, attempts = -1;
-                int coins_count = 0;
-                float speed_mhs = 0.0;
+// Check if a hash meets the DETI Coin criteria
+// (Moved here to validate before saving)
+static int is_valid_coin(u32_t *hash) {
+    return (hash[0] == 0xAAD20250u);
+}
+
+void enqueue_connection(int client_sock) {
+    pthread_mutex_lock(&queue.lock);
+    if (queue.count < MAX_CONNECTION_QUEUE) {
+        queue.sockets[queue.tail] = client_sock;
+        queue.tail = (queue.tail + 1) % MAX_CONNECTION_QUEUE;
+        queue.count++;
+        pthread_cond_signal(&queue.cond);
+    } else {
+        fprintf(stderr, "[Server] Queue full! Dropping connection %d\n", client_sock);
+        close(client_sock);
+    }
+    pthread_mutex_unlock(&queue.lock);
+}
+
+int dequeue_connection() {
+    int sock = -1;
+    pthread_mutex_lock(&queue.lock);
+    while (queue.count == 0) {
+        pthread_cond_wait(&queue.cond, &queue.lock);
+    }
+    sock = queue.sockets[queue.head];
+    queue.head = (queue.head + 1) % MAX_CONNECTION_QUEUE;
+    queue.count--;
+    pthread_mutex_unlock(&queue.lock);
+    return sock;
+}
+
+// --- CLIENT HANDLER ---
+
+void handle_client(int client_fd) {
+    // Initialize Safe Reader
+    tcp_reader_t reader;
+    tcp_reader_init(&reader, client_fd);
+    char *line = NULL;
+
+    // Loop until disconnect
+    while (tcp_read_line(&reader, &line) > 0) {
+        // 'line' is a clean, null-terminated string from the buffer.
+        // No strtok needed for the command type.
+
+        if (strncmp(line, "GETWORK", 7) == 0) {
+            pthread_mutex_lock(&work_lock);
+            long my_work = next_work_id++;
+            pthread_mutex_unlock(&work_lock);
+
+            char reply[64];
+            snprintf(reply, sizeof(reply), "WORK %ld\n", my_work);
+            send(client_fd, reply, strlen(reply), 0);
+        }
+        else if (strncmp(line, "RESULT", 6) == 0) {
+            long work_id = -1, attempts = -1;
+            int coins_count = 0;
+            float speed_mhs = 0.0;
+            
+            // Safe parsing of the line
+            sscanf(line, "RESULT work=%ld attempts=%ld speed=%f coins=%d", 
+                   &work_id, &attempts, &speed_mhs, &coins_count);
+            
+            if (coins_count > 0) {
+                printf("\n--- COIN RECEIVED (Client %d) ---\n", client_fd);
                 
-                sscanf(line, "RESULT work=%ld attempts=%ld speed=%f coins=%d", 
-                       &work_id, &attempts, &speed_mhs, &coins_count);
-                
-                if (coins_count == 0) {
-                    printf("[Client %d] Work: %ld | Speed: %.2f MH/s | Coins: 0\n", 
-                           client_fd, work_id, speed_mhs);
-                } else {
-                    printf("\n--- COIN RECEIVED FROM CLIENT %d ---\n", client_fd);
+                // Find the "coins=" part safely
+                char *coin_ptr = strstr(line, "coins=");
+                if (coin_ptr) {
+                    // Move past "coins=N " to get to the first hex string
+                    // We look for the first space after coins=
+                    coin_ptr = strchr(coin_ptr, ' ');
+                    if (coin_ptr) coin_ptr++; // Skip the space
                     
-                    char *coin_ptr = strstr(line, "coins=");
-                    if (coin_ptr) {
-                        coin_ptr = strchr(coin_ptr, ' ');
-                        if (coin_ptr) {
-                            coin_ptr++; 
-                            pthread_mutex_lock(&vault_lock);
+                    // Parse each coin using strtok_r (THREAD SAFE)
+                    char *saveptr;
+                    char *token = strtok_r(coin_ptr, " \n\r", &saveptr);
+                    
+                    pthread_mutex_lock(&vault_lock);
+                    while (token) {
+                        if (strlen(token) == 110) { // 55 bytes * 2 hex chars
+                            u32_t coin_data[14];
+                            u08_t *bytes = (u08_t *)coin_data;
                             
-                            for (int i = 0; i < coins_count && *coin_ptr; ++i) {
-                                char hex_coin[256];
-                                int hex_pos = 0;
-                                while (*coin_ptr && *coin_ptr != ' ' && hex_pos < 255) {
-                                    hex_coin[hex_pos++] = *coin_ptr;
-                                    coin_ptr++;
-                                }
-                                hex_coin[hex_pos] = '\0';
-                                
-                                if (hex_pos == 110) { 
-                                    u32_t coin_data[14];
-                                    u08_t *bytes = (u08_t *)coin_data;
-                                    
-                                    // Parse Hex
-                                    for (int j = 0; j < 55; j++) {
-                                        u08_t b1 = hex_coin[j*2];
-                                        u08_t b2 = hex_coin[j*2 + 1];
-                                        u08_t v1 = (b1 >= 'a') ? (b1 - 'a' + 10) : (b1 - '0');
-                                        u08_t v2 = (b2 >= 'a') ? (b2 - 'a' + 10) : (b2 - '0');
-                                        bytes[j ^ 3] = (v1 << 4) | v2;
-                                    }
-                                    bytes[54 ^ 3] = '\n';
-                                    bytes[55 ^ 3] = 0x80;
-                                    
-                                    // --- Calculate Value for Display ---
-                                    u32_t hash[5];
-                                    sha1(coin_data, hash);
-                                    
-                                    // Count leading zeros (Logic copied from aad_vault.h)
-                                    u32_t val = 0;
-                                    for(val = 0u; val < 128u; val++)
-                                        if((hash[1u + val / 32u] >> (31u - val % 32u)) % 2u != 0u)
-                                            break;
-                                    if(val > 99u) val = 99u;
-
-                                    // --- Print exactly like Vault ---
-                                    // Format: Vxx:CONTENT
-                                    printf("V%02u:", val);
-                                    for (int j = 0; j < 55; j++) {
-                                        putchar(bytes[j ^ 3]);
-                                    }
-                                    // Note: coin usually ends with \n, so this completes the line
-                                    
-                                    // --- Save ---
-                                    save_coin(coin_data);
-                                }
-                                if (*coin_ptr == ' ') coin_ptr++;
+                            // Parse Hex
+                            for (int j = 0; j < 55; j++) {
+                                int v1, v2;
+                                sscanf(&token[j*2], "%1x%1x", &v1, &v2);
+                                bytes[j ^ 3] = (v1 << 4) | v2;
                             }
-                            save_coin(NULL); // Flush
-                            pthread_mutex_unlock(&vault_lock);
+                            bytes[54 ^ 3] = '\n';
+                            bytes[55 ^ 3] = 0x80;
+
+                            // Validate
+                            u32_t hash[5];
+                            sha1(coin_data, hash);
+
+                            if (is_valid_coin(hash)) {
+                                // Display (Matches Vault format)
+                                u32_t val = 0;
+                                for(val = 0u; val < 128u; val++)
+                                    if((hash[1u + val / 32u] >> (31u - val % 32u)) % 2u != 0u) break;
+                                if(val > 99u) val = 99u;
+
+                                printf("V%02u:", val);
+                                for (int j = 0; j < 55; j++) putchar(bytes[j ^ 3]);
+                                
+                                save_coin(coin_data);
+                            } else {
+                                printf("[Security] Invalid coin rejected!\n");
+                            }
                         }
+                        token = strtok_r(NULL, " \n\r", &saveptr);
                     }
-                    printf("-------------------------------------\n");
+                    save_coin(NULL); // Flush to disk
+                    pthread_mutex_unlock(&vault_lock);
                 }
+                printf("-------------------------------------\n");
+            } else {
+                 // Just status update
+                 // printf("Client %d reported 0 coins\n", client_fd);
             }
-            line = strtok(NULL, "\n");
         }
     }
-
     close(client_fd);
+}
+
+// --- WORKER THREAD ---
+
+void *worker_thread_func(void *arg) {
+    (void)arg;
+    while (1) {
+        int client_sock = dequeue_connection();
+        if (client_sock >= 0) {
+            handle_client(client_sock);
+            // printf("[Server] Client %d disconnected.\n", client_sock);
+        }
+    }
     return NULL;
 }
 
+// --- MAIN ---
+
 int main(int argc, char *argv[]) {
+    (void)argc; (void)argv;
     int server_fd, new_sock;
     struct sockaddr_in address;
     int opt = 1;
     socklen_t addrlen = sizeof(address);
 
+    // 1. Setup Socket
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-        perror("socket");
+        perror("socket failed");
         exit(EXIT_FAILURE);
     }
-
-    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
+    }
 
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(PORT);
 
     if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-        perror("bind");
+        perror("bind failed");
         exit(EXIT_FAILURE);
     }
 
-    if (listen(server_fd, 20) < 0) {
+    if (listen(server_fd, 50) < 0) {
         perror("listen");
         exit(EXIT_FAILURE);
     }
 
     printf("Server listening on port %d\n", PORT);
+    printf("Initializing Thread Pool (%d threads)...\n", THREAD_POOL_SIZE);
 
+    // 2. Start Thread Pool
+    pthread_t thread_pool[THREAD_POOL_SIZE];
+    for (int i = 0; i < THREAD_POOL_SIZE; i++) {
+        if (pthread_create(&thread_pool[i], NULL, worker_thread_func, NULL) != 0) {
+            perror("Failed to create worker thread");
+        }
+    }
+
+    // 3. Accept Loop
     while (1) {
         new_sock = accept(server_fd, (struct sockaddr *)&address, &addrlen);
         if (new_sock < 0) {
             perror("accept");
             continue;
         }
-        int *pclient = malloc(sizeof(int));
-        *pclient = new_sock;
-        pthread_t tid;
-        pthread_create(&tid, NULL, handle_client, pclient);
-        pthread_detach(tid);
+        // Push to queue handled by workers
+        enqueue_connection(new_sock);
     }
 
-    pthread_mutex_lock(&vault_lock);
-    save_coin(NULL);
-    pthread_mutex_unlock(&vault_lock);
-    
-    close(server_fd);
     return 0;
 }

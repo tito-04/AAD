@@ -96,6 +96,8 @@
 
 static u64_t lcg_state = 0;
 
+extern volatile int keep_running;
+
 static inline u32_t count_coin_value(u32_t *hash) {
     u32_t n;
     for(n = 0; n < 128; n++) {
@@ -214,6 +216,7 @@ void run_mining_round(long work_id,
     if(custom_text) printf("--- Using Custom Text: \"%s\" ---\n", custom_text);
 
     while (1) {
+        if (!keep_running) break;
         // A. Update Slow Salt
         if (salt_counter >= SALT_UPDATE_INTERVAL) {
             // Regenerar salt mantendo o prefixo fixo

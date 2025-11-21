@@ -1,37 +1,32 @@
 #
 # Arquiteturas de Alto Desempenho 2025/2026
+# REVISED: Fixed Linking and Compilation Flags
 #
-# makefile for the first practical assignment (A1)
-#
-# makefile automatic variables:
-# $@ is the name of the target
-# $< is the name of the first prerequisite
-# $^ is the list of names of all prerequisites (without duplicates)
-#
-#
-# CUDA installation directory --- /usr/local/cuda or $(CUDA_HOME)
-#
+# CUDA directory
 CUDA_DIR = /usr/local/cuda
-#
-# OpenCL installation directory (for a NVidia graphics card, same as CUDA)
-#
 OPENCL_DIR = $(CUDA_DIR)
-#
-# CUDA device architecture
-#
-# GeForce GTX 1660 Ti --- sm_75
-# RTX A2000 Ada --------- sm_86
-# RTX A6000 Ada --------- sm_86
-# RTX 4070 -------------- sm_89
-#
-# MUDE ESTA LINHA para a sua gráfica (ex: sm_89 para uma RTX 4070)
+
+# CUDA architecture
 CUDA_ARCH = sm_89
+
+# Compilers
+CC = cc
+NVCC = nvcc
+
+# --- Global CFLAGS ---
+CFLAGS = -Wall -Wshadow -O3 -pthread
+
+# --- NVCC Flags ---
+# Note: We include the -arch flag here.
+NVCCFLAGS = -arch=$(CUDA_ARCH) -O3
+
 #
-# default target
+# Default target
 #
-all: sha1_tests deti_coin_no_simd avx avx2 avx512f sha1_cuda_test cuda_miner opencl_miner server client_scalar client_avx client_avx2 client_avx512f client_cuda temp_avx temp_avx2 temp_avx512f
+all: sha1_tests deti_coin_no_simd avx avx2 avx512f sha1_cuda_test cuda_miner opencl_miner server client_scalar client_avx client_avx2 client_avx512f client_cuda client_opencl
+
 #
-# clean up
+# Clean up
 #
 clean:
 	rm -f sha1_tests
@@ -43,94 +38,81 @@ clean:
 	rm -f cuda_miner miner_kernel.cubin
 	rm -f opencl_miner
 	rm -f server
-	rm -f client_scalar client_avx client_avx2 client_avx512f client_cuda
+	rm -f client_scalar client_avx client_avx2 client_avx512f client_cuda client_opencl
+	rm -f client_scalar.o client_cuda.o client_opencl.o deti_coin_cuda_worker.o
+
 #
-# test the CUSTOM_SHA1_CODE macro
+# Tests & Kernels
 #
 sha1_tests: aad_sha1_cpu_tests.c aad_sha1.h aad_data_types.h aad_utilities.h makefile
-	cc -march=native -Wall -Wshadow -Werror -O3 $< -o $@
+	$(CC) -march=native -Wall -Wshadow -Werror -O3 $< -o $@
 
 sha1_cuda_test: aad_sha1_cuda_test.c sha1_cuda_kernel.cubin aad_sha1.h aad_data_types.h aad_utilities.h aad_cuda_utilities.h makefile
-	cc -march=native -Wall -Wshadow -Werror -O3 -I$(CUDA_DIR)/include $< -o $@ -L$(CUDA_DIR)/lib64 -lcuda
-#
-# compile the CUDA kernels
-#
+	$(CC) -march=native -Wall -Wshadow -Werror -O3 -I$(CUDA_DIR)/include $< -o $@ -L$(CUDA_DIR)/lib64 -lcuda
+
 sha1_cuda_kernel.cubin: aad_sha1_cuda_kernel.cu aad_sha1.h makefile
-	nvcc -arch=$(CUDA_ARCH) --compiler-options -O2,-Wall -I$(CUDA_DIR)/include --cubin $< -o $@
+	$(NVCC) $(NVCCFLAGS) --compiler-options -O2,-Wall -I$(CUDA_DIR)/include --cubin $< -o $@
 
 miner_kernel.cubin: miner_kernel.cu aad_sha1.h aad_data_types.h makefile
-	nvcc -arch=$(CUDA_ARCH) --compiler-options -O2,-Wall -I$(CUDA_DIR)/include --cubin $< -o $@
+	$(NVCC) $(NVCCFLAGS) --compiler-options -O2,-Wall -I$(CUDA_DIR)/include --cubin $< -o $@
+
 #
-# CPU-only miner (no SIMD - V3 unified version)
+# Miners (Standalone)
 #
 deti_coin_no_simd: deti_coin_no_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
-	cc -march=native -Wall -Wshadow -Werror -O3 -funroll-loops -flto $< -o $@
-#
-# SIMD versions of deti_coin_miner_simd.c (nome de ficheiro assumido)
-#
-# AVX version (SIMD width = 4)
+	$(CC) -march=native -Wall -Wshadow -Werror -O3 -funroll-loops -flto $< -o $@
+
 avx: deti_coin_miner_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
-	cc -mavx -Wall -Wshadow -Werror -O3 -funroll-loops -flto $< -o $@
+	$(CC) -mavx -Wall -Wshadow -Werror -O3 -funroll-loops -flto $< -o $@
 
-# AVX2 version (SIMD width = 8)
 avx2: deti_coin_miner_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
-	cc -mavx2 -Wall -Wshadow -Werror -O3 -funroll-loops -flto $< -o $@
+	$(CC) -mavx2 -Wall -Wshadow -Werror -O3 -funroll-loops -flto $< -o $@
 
-# AVX-512F version (SIMD width = 16)
 avx512f: deti_coin_miner_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
-	cc -mavx512f -Wall -Wshadow -Werror -O3 -funroll-loops -flto $< -o $@
+	$(CC) -mavx512f -Wall -Wshadow -Werror -O3 -funroll-loops -flto $< -o $@
 
-#
-# SIMD versions of temp.c
-#
-temp_avx: temp.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
-	cc -mavx -Wall -Wshadow -Werror -O3 -funroll-loops -flto -fopenmp $< -o $@
-
-temp_avx2: temp.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
-	cc -mavx2 -Wall -Wshadow -Werror -O3 -funroll-loops -flto -fopenmp $< -o $@
-
-temp_avx512f: temp.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
-	cc -mavx512f -Wall -Wshadow -Werror -O3 -funroll-loops -flto -fopenmp $< -o $@
-#
-# CUDA miner (High Performance)
-#
 cuda_miner: cuda_miner.c miner_kernel.cubin aad_sha1.h aad_data_types.h aad_utilities.h aad_cuda_utilities.h aad_sha1_cpu.h aad_vault.h makefile
-	cc -march=native -Wall -Wshadow -O3 -flto -ffast-math -I$(CUDA_DIR)/include $< -o $@ -L$(CUDA_DIR)/lib64 -lcuda
+	$(CC) -march=native -Wall -Wshadow -O3 -flto -ffast-math -I$(CUDA_DIR)/include $< -o $@ -L$(CUDA_DIR)/lib64 -lcuda
 
-#
-# OpenCL miner (High Performance)
-#
 opencl_miner: deti_coin_opencl.c aad_data_types.h aad_sha1_cpu.h aad_vault.h open_cl_util.h makefile
-	cc -march=native -Wall -Wshadow -Werror -O3 -I$(OPENCL_DIR)/include $< -o $@ -L$(OPENCL_DIR)/lib64 -lOpenCL
+	$(CC) -march=native -Wall -Wshadow -Werror -O3 -I$(OPENCL_DIR)/include $< -o $@ -L$(OPENCL_DIR)/lib64 -lOpenCL
 
-# ---------------------------------------------------------
-# SERVER
-# ---------------------------------------------------------
 server: server.c aad_vault.h aad_sha1_cpu.h aad_data_types.h
-	cc -march=native -Wall -Wshadow -O3 -pthread server.c -o server
+	$(CC) -march=native -Wall -Wshadow -O3 -pthread server.c -o server
 
 # ---------------------------------------------------------
 # CLIENTS
 # ---------------------------------------------------------
 
-# 1. Scalar Client (CPU - No SIMD)
-# Works on any machine.
-client_scalar: client.c deti_coin_worker.c aad_sha1_cpu.h aad_data_types.h
-	cc -march=native -Wall -O3 -pthread -o client_scalar client.c deti_coin_worker.c
+# Compile CUDA worker host code
+deti_coin_cuda_worker.o: deti_coin_cuda_worker.cu aad_cuda_utilities.h
+	$(NVCC) $(NVCCFLAGS) -I$(CUDA_DIR)/include -c $< -o $@
 
-# 2. AVX Client (CPU - SIMD Width 4)
-client_avx: client.c deti_coin_simd_worker.c aad_sha1_cpu.h aad_data_types.h
-	cc -mavx -Wall -O3 -pthread -o client_avx client.c deti_coin_simd_worker.c
+# 1. Scalar Client
+# We compile client.c directly here to avoid object file sharing issues
+client_scalar: client.c deti_coin_worker.c
+	$(CC) $(CFLAGS) client.c deti_coin_worker.c -o $@
 
-# 3. AVX2 Client (CPU - SIMD Width 8)
-client_avx2: client.c deti_coin_simd_worker.c aad_sha1_cpu.h aad_data_types.h
-	cc -mavx2 -Wall -O3 -pthread -o client_avx2 client.c deti_coin_simd_worker.c
+# 2. AVX Client
+client_avx: client.c deti_coin_simd_worker.c
+	$(CC) $(CFLAGS) -mavx client.c deti_coin_simd_worker.c -o $@
 
-# 4. AVX-512F Client (CPU - SIMD Width 16)
-client_avx512f: client.c deti_coin_simd_worker.c aad_sha1_cpu.h aad_data_types.h
-	cc -mavx512f -Wall -O3 -pthread -o client_avx512f client.c deti_coin_simd_worker.c
+# 3. AVX2 Client
+client_avx2: client.c deti_coin_simd_worker.c
+	$(CC) $(CFLAGS) -mavx2 client.c deti_coin_simd_worker.c -o $@
 
-# 5. CUDA Client (GPU - NVIDIA)
-# Step B: Compile the client executable linking against CUDA driver (-lcuda)
-client_cuda: client.c deti_coin_cuda_worker.cu miner_kernel.cubin aad_cuda_utilities.h
-	nvcc -arch=$(CUDA_ARCH) -O3 -o client_cuda client.c deti_coin_cuda_worker.cu -lcuda
+# 4. AVX-512F Client
+client_avx512f: client.c deti_coin_simd_worker.c
+	$(CC) $(CFLAGS) -mavx512f client.c deti_coin_simd_worker.c -o $@
+
+# 5. CUDA Client
+# 1) Compile client.c with -DUSE_CUDA_WORKER so the cleanup code is included.
+# 2) Link everything using NVCC to handle C++ and CUDA Runtime libraries.
+client_cuda: client.c deti_coin_cuda_worker.o miner_kernel.cubin
+	$(CC) $(CFLAGS) -DUSE_CUDA_WORKER -c client.c -o client_cuda.o
+	$(NVCC) $(NVCCFLAGS) -o $@ client_cuda.o deti_coin_cuda_worker.o -lcuda
+
+# 6. OpenCL Client
+# Compile client.c with -DUSE_OPENCL_WORKER
+client_opencl: client.c deti_coin_opencl_worker.c
+	$(CC) $(CFLAGS) -DUSE_OPENCL_WORKER -I$(OPENCL_DIR)/include -o $@ client.c deti_coin_opencl_worker.c -L$(OPENCL_DIR)/lib64 -lOpenCL

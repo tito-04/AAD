@@ -15,6 +15,8 @@
 #define DISPLAY_INTERVAL_HASHES 10000000
 #define MAX_COINS_PER_ROUND 1024
 
+extern volatile int keep_running;
+
 unsigned int global_seed = 0;
 u64_t global_counter_offset = 0;
 
@@ -95,6 +97,7 @@ void run_mining_round(long work_id,
     if (custom_text) printf("--- Using Custom Text: \"%s\" ---\n", custom_text);
 
     while (1) {
+        if (!keep_running) break;
         generate_message(data, local_counter, custom_text);
         sha1(data, hash);
 

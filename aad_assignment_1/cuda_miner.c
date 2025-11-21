@@ -1,8 +1,3 @@
-//
-// Ficheiro: cuda_miner.c
-// Host code for the Nonce Grinding Strategy
-//
-
 #include <time.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -109,9 +104,27 @@ void run_cuda_miner(const char *custom_text, u64_t max_attempts, int gpu_device_
         CU_CALL( cuMemAlloc, (&d_templates[i], (size_t)cd.data_size[0]) );
     }
 
-    cd.block_dim_x = 128; 
-    // REDUCED GRID SIZE due to Loop: 4096 blocks * 128 threads * 95 loops = ~50M hashes per launch
-    cd.grid_dim_x = 4096; 
+    // --- OCCUPANCY OPTIMIZATION START ---
+    int minGridSize = 0;
+    int blockSize = 0;
+    
+    // Calculate optimal block size dynamically using Driver API
+    // NOTE: We MUST separate the function name and arguments with a comma for the CU_CALL macro
+    CU_CALL( cuOccupancyMaxPotentialBlockSize, (&minGridSize, &blockSize, cd.cu_kernel, NULL, 0, 0) );
+    
+    cd.block_dim_x = blockSize;
+    
+    // Target roughly ~250k threads in flight to hide memory latency and instruction stalls
+    int target_threads = 262144; 
+    int calc_grid = (target_threads + blockSize - 1) / blockSize;
+    
+    // Ensure we meet the minimum grid size suggested by CUDA
+    if (calc_grid < minGridSize) calc_grid = minGridSize;
+    
+    cd.grid_dim_x = calc_grid;
+
+    printf("[CUDA] Optimization: BlockSize=%d | GridSize=%d\n", cd.block_dim_x, cd.grid_dim_x);
+    // --- OCCUPANCY OPTIMIZATION END ---
     
     u64_t threads_per_launch = (u64_t)cd.block_dim_x * (u64_t)cd.grid_dim_x;
     u64_t hashes_per_launch = threads_per_launch * LOOP_SIZE;
@@ -210,6 +223,19 @@ void run_cuda_miner(const char *custom_text, u64_t max_attempts, int gpu_device_
         }
     }
     
+    for(int s = 1; s < N_STREAMS; s++) {
+        // Free Device Memory
+        if (d_vaults[s])    CU_CALL( cuMemFree, (d_vaults[s]) );
+        if (d_templates[s]) CU_CALL( cuMemFree, (d_templates[s]) );
+        
+        // Free Host (Pinned) Memory - CRITICAL to prevent RAM leaks
+        if (h_vaults[s])    CU_CALL( cuMemFreeHost, (h_vaults[s]) );
+        if (h_templates[s]) CU_CALL( cuMemFreeHost, (h_templates[s]) );
+        
+        // Destroy Stream
+        if (streams[s])     CU_CALL( cuStreamDestroy, (streams[s]) );
+    }
+
     terminate_cuda(&cd); 
     save_coin(NULL); 
 
