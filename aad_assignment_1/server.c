@@ -110,7 +110,9 @@ void handle_client(int client_fd) {
             // Safe parsing of the line
             sscanf(line, "RESULT work=%ld attempts=%ld speed=%f coins=%d", 
                    &work_id, &attempts, &speed_mhs, &coins_count);
-            
+            printf("[Status] Client %d | Work: %ld | %.2f MH/s | Coins: %d\n", 
+                    client_fd, work_id, speed_mhs, coins_count);
+
             if (coins_count > 0) {
                 printf("\n--- COIN RECEIVED (Client %d) ---\n", client_fd);
                 

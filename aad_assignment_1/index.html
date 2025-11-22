@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
+    <title>AAD DETI Coin Miner (Wasm)</title>
+    <style>
+        /* Variáveis para fácil alteração de tema */
+        :root {
+            --color-bg-main: #1e1e2e;      
+            --color-bg-container: #252540; 
+            --color-text-primary: #e0e0ff;  
+            --color-highlight: #00bcd4;     
+            --color-border: #444466;        
+            --color-coin-bg: #151525;       
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: grid; 
+            place-items: center; 
+            min-height: 100vh; 
+            background: var(--color-bg-main); 
+            color: var(--color-text-primary); 
+        }
+        
+        #container { 
+            width: 100%;
+            max-width: 650px; 
+            background: var(--color-bg-container); 
+            border: 1px solid var(--color-border); 
+            padding: 30px; 
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        h1, h3 { 
+            text-align: center;
+            color: var(--color-text-primary);
+            border-bottom: 1px dashed var(--color-border);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        h1 { font-size: 2.2em; margin-bottom: 20px; }
+        h3 { font-size: 1.2em; margin-bottom: 15px; }
+
+        /* Controles e Botões */
+        #controls { 
+            display: flex; 
+            gap: 15px; 
+            margin-bottom: 25px; 
+        }
+        #controls input { 
+            flex-grow: 1; 
+            padding: 10px; 
+            border: 1px solid var(--color-border); 
+            border-radius: 6px; 
+            background: var(--color-coin-bg);
+            color: var(--color-text-primary);
+        }
+        #controls button { 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 6px; 
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        #start_button {
+            background: var(--color-highlight);
+            color: var(--color-bg-main);
+        }
+        #start_button:hover:not(:disabled) {
+            background: #00e5ff;
+            cursor: pointer;
+        }
+        #stop_button {
+            background: #e91e63;
+            color: white;
+        }
+        #stop_button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Métricas de Performance */
+        #performance_metrics {
+            margin-bottom: 25px;
+            padding: 10px 0;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+        }
+        #status { 
+            font-size: 2.5em; 
+            text-align: center; 
+            font-family: 'Consolas', 'Courier New', monospace;
+            color: var(--color-text-primary);
+            line-height: 1.2;
+        }
+        #speed_value {
+             color: var(--color-highlight); 
+             font-weight: bold;
+        }
+        #attempts_counter { 
+            font-size: 0.9em; 
+            text-align: center; 
+            color: #9999cc; 
+            margin-top: 5px;
+        }
+
+        /* Lista de Moedas */
+        #coins_found { 
+            background: var(--color-coin-bg); 
+            border: 1px solid var(--color-border); 
+            height: 300px; 
+            overflow-y: scroll; 
+            padding: 15px; 
+            border-radius: 6px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+        #coins_found div { 
+            margin-bottom: 10px; 
+            border-bottom: 1px dashed var(--color-border); 
+            padding-bottom: 10px;
+        }
+        #coins_found b { 
+            color: var(--color-highlight);
+            display: block; 
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>DETI Coin Miner (Wasm)</h1>
+        
+        <div id="controls">
+            <input type="text" id="custom_text" placeholder="Custom text (optional)">
+            <button id="start_button">Start</button>
+            <button id="stop_button" disabled>Stop</button>
+            <button id="download_button" disabled style="background: #4caf50; color: white;">Download Vault</button>
+        </div>
+
+        <div id="performance_metrics">
+            <div id="status"><span id="speed_value">---</span> MH/s</div>
+            <div id="attempts_counter">Attempts: 0</div>
+        </div>
+
+        <h3>Coins Found:</h3>
+        <div id="coins_found"></div>
+    </div>
+
+    <script src="main.js" type="module"></script>
+</body>
+</html>

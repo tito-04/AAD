@@ -1,5 +1,7 @@
 // deti_coin_opencl_worker.c
-// REVISED: Fixes fread warning and includes cleanup.
+// Strategy: Random Prefix (Nonce) + Slow Salt Interval
+// Matches behavior of: deti_coin_worker.c, deti_coin_cuda_worker.cu
+
 #define CL_TARGET_OPENCL_VERSION 120
 #define _GNU_SOURCE
 
@@ -18,9 +20,13 @@
 #define MAX_CUSTOM_LEN 34
 #define STORAGE_INTS  (1 << 16) 
 #define MAX_SECONDS 60.0 
-#define DISPLAY_INTERVAL_ATTEMPTS 50000000ULL 
 #define MAX_COINS_PER_ROUND 1024
 #define LOOP_SIZE 95 
+
+// --- STRATEGY CONFIGURATION ---
+#define SALT_UPDATE_INTERVAL 50000ULL 
+#define FAST_NONCE_START 46
+#define DISPLAY_INTERVAL_ATTEMPTS 500000000
 
 extern volatile int keep_running;
 
@@ -35,11 +41,16 @@ static u32_t* h_storage = NULL;
 static u64_t host_lcg_state = 0;
 static char device_name[128] = {0};
 
+// Helper: LCG Random Generator (Matches CPU/CUDA)
+static inline u64_t get_random_u64() {
+    host_lcg_state = 6364136223846793005ul * host_lcg_state + 1442695040888963407ul;
+    return host_lcg_state;
+}
+
 void check_cl_error(cl_int err, const char* op) {
     if (err != CL_SUCCESS) { fprintf(stderr, "OpenCL Error %s: %d\n", op, err); exit(1); }
 }
 
-// FIX: Correctly checking fread return value
 char* load_kernel(const char* filename) {
     FILE* f = fopen(filename, "rb"); 
     if (!f) { perror("fopen"); exit(1); }
@@ -63,21 +74,43 @@ char* load_kernel(const char* filename) {
     return buf;
 }
 
-static void prepare_template(u32_t *buffer, const char *custom_text, int custom_len) {
+// Helper: Generates Template with Header + Text + Random Salt (Matches CPU Logic)
+static void generate_host_template(u32_t *buffer, const char *custom_text, int custom_len) {
     u08_t *bytes = (u08_t *)buffer;
     memset(buffer, 0, 14 * sizeof(u32_t));
+    
+    // 1. Header
     const char header[] = "DETI coin 2 ";
     for(int i = 0; i < 12; i++) bytes[i ^ 3] = (u08_t)header[i];
+
     int current_idx = 12;
+    const int end_idx = 45; // Salt ends at 45
     int text_pos = 0;
+
+    // 2. Custom Text
     if (custom_text != NULL) {
-        while(text_pos < custom_len && current_idx < 54) {
+        while(text_pos < custom_len && current_idx <= end_idx) {
             char c = custom_text[text_pos++];
             if(c < 32 || c > 126) c = ' '; 
             bytes[current_idx ^ 3] = (u08_t)c;
             current_idx++;
         }
     }
+
+    // 3. Random Salt (Bytes 12-45)
+    // We fill the rest of the 12-45 range with random characters
+    while (current_idx <= end_idx) {
+        u64_t rnd = get_random_u64();
+        u08_t ascii_char = 32 + (u08_t)(( (u08_t)(rnd >> 56) * 95) >> 8);
+        bytes[current_idx ^ 3] = ascii_char;
+        current_idx++;
+    }
+    
+    // 4. Footer (Optional placeholder, kernel might overwrite or use)
+    // Bytes 46-52 are Fast Nonce (Kernel generates this if fixed_len=46)
+    // Byte 53 is Grinding Loop
+    bytes[54 ^ 3] = '\n';
+    bytes[55 ^ 3] = 0x80;
 }
 
 extern void cleanup_cl_worker() {
@@ -114,10 +147,6 @@ extern void run_mining_round(long work_id,
         prog_handle = clCreateProgramWithSource(ctx, 1, (const char**)&source, NULL, &err);
         clBuildProgram(prog_handle, 1, &device, "", NULL, NULL);
         
-        // Optional: Build log retrieval if compilation fails
-        // size_t log_len; clGetProgramBuildInfo(prog_handle, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_len);
-        // ...
-
         kernel = clCreateKernel(prog_handle, "search_deti_coins", &err);
         free(source); 
 
@@ -127,21 +156,23 @@ extern void run_mining_round(long work_id,
         h_storage[0] = 1; 
 
         struct timespec ts; clock_gettime(CLOCK_MONOTONIC, &ts);
-        host_lcg_state = ((u64_t)ts.tv_nsec) ^ ((u64_t)getpid() << 32);
-
+        // Seed LCG: Time + PID + WorkID
+        host_lcg_state = ((u64_t)ts.tv_nsec) ^ ((u64_t)getpid() << 32) ^ (u64_t)work_id;
+        
+        // Kernel Args 1, 2, 4, 5
         u64_t seed = 0, offset = 0; u32_t max_ints = STORAGE_INTS, debug = 0;
         clSetKernelArg(kernel, 1, sizeof(u64_t), &seed);
         clSetKernelArg(kernel, 2, sizeof(u64_t), &offset);
         clSetKernelArg(kernel, 4, sizeof(u32_t), &max_ints);
         clSetKernelArg(kernel, 5, sizeof(u32_t), &debug);
+        
         is_cl_init = 1;
-        printf("[OpenCL] Device: %s (Nonce Grinding x%d)\n", device_name, LOOP_SIZE);
+        printf("[OpenCL] Device: %s (Strategy: Random Prefix + Slow Salt)\n", device_name);
     }
     
     u64_t total_attempts = 0;
     int coins_found = 0;
     u64_t last_report = 0;
-    u64_t base_counter = (u64_t)work_id * 100000000000ULL;
     
     size_t global = 256 * 1024; 
     size_t local  = 256; 
@@ -152,9 +183,14 @@ extern void run_mining_round(long work_id,
         custom_len = (len > MAX_CUSTOM_LEN) ? MAX_CUSTOM_LEN : (int)len;
     }
 
+    // --- STRATEGY SETUP ---
     u32_t h_template[16];
-    prepare_template(h_template, custom_text, custom_len);
-    u32_t fixed_len = 12 + custom_len;
+    // Initial template generation
+    generate_host_template(h_template, custom_text, custom_len);
+    
+    // IMPORTANT: Set fixed_len to 46.
+    // This tells the kernel: "Bytes 0-45 are fixed (from Host). Only generate random from 46 onwards."
+    u32_t fixed_len = FAST_NONCE_START; // 46
 
     CL_CALL(clEnqueueWriteBuffer, (queue, d_template, CL_TRUE, 0, 64, h_template, 0, NULL, NULL));
     CL_CALL(clSetKernelArg, (kernel, 6, sizeof(cl_mem), &d_template));
@@ -164,17 +200,33 @@ extern void run_mining_round(long work_id,
     clock_gettime(CLOCK_MONOTONIC, &t_start);
     
     int keep_looping = 1;
+    u64_t salt_age = 0;
+
     while(keep_looping) {
         if (!keep_running) break;
         
+        // 1. Check if we need to update Salt (Slow Salt Strategy)
+        if (salt_age >= SALT_UPDATE_INTERVAL) {
+            generate_host_template(h_template, custom_text, custom_len);
+            // Copy new salt to GPU
+            CL_CALL(clEnqueueWriteBuffer, (queue, d_template, CL_TRUE, 0, 64, h_template, 0, NULL, NULL));
+            salt_age = 0;
+        } else {
+            salt_age++;
+        }
+
+        // 2. Generate Random Base Counter (Random Prefix Strategy)
+        // This ensures every batch scans a random location in the 2^56 space.
+        u64_t base_counter = get_random_u64();
+
         CL_CALL(clEnqueueUnmapMemObject, (queue, d_storage, h_storage, 0, NULL, NULL));
+        
         clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_storage);
         clSetKernelArg(kernel, 3, sizeof(u64_t), &base_counter);
         
         CL_CALL(clEnqueueNDRangeKernel, (queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL));
         
         u64_t hashes_this_round = (u64_t)global * LOOP_SIZE;
-        base_counter += global; 
         total_attempts += hashes_this_round;
         
         cl_int err;

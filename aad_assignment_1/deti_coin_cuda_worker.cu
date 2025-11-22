@@ -1,6 +1,7 @@
 //
 // deti_coin_cuda_worker.cu
-// Optimized CUDA Worker with Dynamic Occupancy
+// Strategy: Random Prefix (Nonce) + Slow Salt Interval
+// Matches behavior of: deti_coin_worker.c, deti_coin_simd_worker.c
 //
 
 #include <stdio.h>
@@ -22,6 +23,9 @@
 #define MAX_COINS_PER_ROUND 1024
 #define LOOP_SIZE 95 
 
+// --- STRATEGY CONFIGURATION ---
+#define SALT_UPDATE_INTERVAL 50000ULL 
+
 extern "C" volatile int keep_running;
 
 // ============================================================================
@@ -29,6 +33,12 @@ extern "C" volatile int keep_running;
 // ============================================================================
 
 static u64_t host_lcg_state = 0;
+
+// Helper to get random 64-bit numbers for the Nonce Base
+static inline u64_t get_random_u64() {
+    host_lcg_state = 6364136223846793005ul * host_lcg_state + 1442695040888963407ul;
+    return host_lcg_state;
+}
 
 static void generate_host_template(u32_t *buffer, const char *custom_text, int custom_len) {
     u08_t *bytes = (u08_t *)buffer;
@@ -49,10 +59,10 @@ static void generate_host_template(u32_t *buffer, const char *custom_text, int c
         }
     }
 
+    // Fill Salt (Bytes 12-45) with random data
     while (current_idx <= end_idx) {
-        host_lcg_state = 6364136223846793005ul * host_lcg_state + 1442695040888963407ul;
-        u08_t random_raw = (u08_t)(host_lcg_state >> 56);
-        u08_t ascii_char = 32 + (u08_t)((random_raw * 95) >> 8);
+        u64_t rnd = get_random_u64();
+        u08_t ascii_char = 32 + (u08_t)(( (u08_t)(rnd >> 56) * 95) >> 8);
         bytes[current_idx ^ 3] = ascii_char;
         current_idx++;
     }
@@ -81,10 +91,7 @@ extern "C" void terminate_cuda(cuda_data_t *cd);
 extern "C" void cleanup_cuda_worker() {
     if (is_cuda_init) {
         printf("[CUDA Worker] Shutting down CUDA resources...\n");
-
-        for(int s = 0; s < N_STREAMS; s++) {
-            cuStreamSynchronize(streams[s]); 
-        }
+        for(int s = 0; s < N_STREAMS; s++) cuStreamSynchronize(streams[s]); 
 
         for(int s = 1; s < N_STREAMS; s++) {
             if (d_vaults[s])    CU_CALL( cuMemFree, (d_vaults[s]) );
@@ -93,7 +100,6 @@ extern "C" void cleanup_cuda_worker() {
             if (h_templates[s]) CU_CALL( cuMemFreeHost, (h_templates[s]) );
             if (streams[s])     CU_CALL( cuStreamDestroy, (streams[s]) );
         }
-
         terminate_cuda(&cd); 
         is_cuda_init = 0;
         printf("[CUDA Worker] Shutdown complete.\n");
@@ -143,38 +149,25 @@ extern "C" void run_mining_round(long work_id,
             kernel_args[i][2] = &d_templates[i]; 
         }
         
-        // --- OCCUPANCY OPTIMIZATION START ---
+        // --- OCCUPANCY OPTIMIZATION ---
         int minGridSize = 0;
         int blockSize = 0;
-        
-        // Calculate optimal block size dynamically
-        cudaError_t occupancy_status = cudaOccupancyMaxPotentialBlockSize(
-            &minGridSize, 
-            &blockSize, 
-            (const void*)cd.cu_kernel, // Cast may depend on your cuda_data_t struct; if this is CUfunction, careful. 
-            // NOTE: cudaOccupancyMaxPotentialBlockSize requires a __global__ function pointer (C++ API).
-            // Since we are using Driver API (CUfunction) in 'cd.cu_kernel', we cannot use the Runtime API occupancy calculator easily
-            // UNLESS we also link the kernel code here or use cuOccupancyMaxPotentialBlockSize (Driver API equivalent).
-            //
-            // SAFE FIX: Use Driver API occupancy check
-            0, 0
-        );
-        
-        // Fallback to Driver API approach since we are loading a CUBIN:
         CU_CALL( cuOccupancyMaxPotentialBlockSize, (&minGridSize, &blockSize, cd.cu_kernel, NULL, 0, 0) );
         
         cd.block_dim_x = blockSize;
-        int target_threads = 262144; // Target ~250k in flight
+        int target_threads = 262144; 
         int calc_grid = (target_threads + blockSize - 1) / blockSize;
         if (calc_grid < minGridSize) calc_grid = minGridSize;
         cd.grid_dim_x = calc_grid;
 
         printf("[CUDA] Optimization: BlockSize=%d | GridSize=%d\n", cd.block_dim_x, cd.grid_dim_x);
-        // --- OCCUPANCY OPTIMIZATION END ---
         
+        // Seed LCG with Time + PID + WorkID (Ensures randomness per client/process)
         struct timespec ts;
         clock_gettime(CLOCK_MONOTONIC, &ts);
-        host_lcg_state = ((u64_t)ts.tv_nsec) ^ ((u64_t)getpid() << 32);
+        host_lcg_state = ((u64_t)ts.tv_nsec) ^ ((u64_t)getpid() << 32) ^ (u64_t)work_id;
+        // Warmup
+        for(int k=0; k<10; k++) get_random_u64();
 
         is_cuda_init = 1;
         printf("[CUDA Worker] Initialized Device: %s\n", cd.device_name);
@@ -184,8 +177,10 @@ extern "C" void run_mining_round(long work_id,
     u64_t hashes_per_launch = num_threads * LOOP_SIZE; 
     u64_t total_hashes = 0;
     int coins_found = 0;
-    u64_t current_base_counter = (u64_t)work_id * 100000000000ULL;
     
+    // Track Salt Ages
+    u64_t stream_salt_ages[N_STREAMS] = {0};
+
     int custom_len = 0;
     if (custom_text != NULL) {
         size_t len = strlen(custom_text);
@@ -202,11 +197,16 @@ extern "C" void run_mining_round(long work_id,
 
     for(int s = 0; s < N_STREAMS; s++) {
         h_vaults[s][0] = 1u; 
+        // Initial Salt Generation
         generate_host_template(h_templates[s], custom_text, custom_len);
         CU_CALL( cuMemcpyHtoDAsync, (d_templates[s], h_templates[s], (size_t)cd.data_size[0], streams[s]) );
         CU_CALL( cuMemcpyHtoDAsync, (d_vaults[s], h_vaults[s], (size_t)cd.data_size[1], streams[s]) );
-        base_counters[s] = current_base_counter;
-        current_base_counter += num_threads; 
+        
+        stream_salt_ages[s] = 0;
+
+        // STRATEGY: Random Base for Nonce (Bytes 46-52)
+        base_counters[s] = get_random_u64();
+        
         CU_CALL( cuLaunchKernel, (cd.cu_kernel, cd.grid_dim_x, 1u, 1u, cd.block_dim_x, 1u, 1u, 0u, streams[s], &kernel_args[s][0], NULL) );
     }
 
@@ -235,9 +235,9 @@ extern "C" void run_mining_round(long work_id,
                      char *out_hex = coins_out[coins_found];
                      int pos = 0;
                      
-                     printf("\n[!] CUDA COIN FOUND! Nonce: %c%c%c%c%c%c%c%c\n",
+                     printf("\n[!] CUDA COIN FOUND! Nonce: %02x%02x%02x%02x%02x%02x%02x%c\n",
                         coin_bytes[46^3], coin_bytes[47^3], coin_bytes[48^3], coin_bytes[49^3], 
-                        coin_bytes[50^3], coin_bytes[51^3], coin_bytes[52^3], coin_bytes[53^3]);
+                        coin_bytes[50^3], coin_bytes[51^3], coin_bytes[52^3], (char)coin_bytes[53^3]);
                      
                      for (int b = 0; b < 55; ++b) {
                          pos += snprintf(out_hex + pos, COIN_HEX_STRLEN - pos, "%02x", coin_bytes[b ^ 3]);
@@ -248,12 +248,24 @@ extern "C" void run_mining_round(long work_id,
              }
         }
 
-        generate_host_template(h_templates[s], custom_text, custom_len);
-        base_counters[s] = current_base_counter;
-        current_base_counter += num_threads;
+        // --- STRATEGY LOGIC START ---
+        
+        // 1. Check if Salt needs updating (Slow Salt)
+        if (stream_salt_ages[s] >= SALT_UPDATE_INTERVAL) {
+            generate_host_template(h_templates[s], custom_text, custom_len);
+            CU_CALL( cuMemcpyHtoDAsync, (d_templates[s], h_templates[s], (size_t)cd.data_size[0], streams[s]) );
+            stream_salt_ages[s] = 0;
+        } else {
+            stream_salt_ages[s]++;
+        }
+        
+        // 2. Always update Nonce Base (Random Prefix)
+        base_counters[s] = get_random_u64();
+        
+        // --- STRATEGY LOGIC END ---
+
         h_vaults[s][0] = 1u; 
 
-        CU_CALL( cuMemcpyHtoDAsync, (d_templates[s], h_templates[s], (size_t)cd.data_size[0], streams[s]) );
         CU_CALL( cuMemcpyHtoDAsync, (d_vaults[s], h_vaults[s], (size_t)cd.data_size[1], streams[s]) );
         CU_CALL( cuLaunchKernel, (cd.cu_kernel, cd.grid_dim_x, 1u, 1u, cd.block_dim_x, 1u, 1u, 0u, streams[s], &kernel_args[s][0], NULL) );
 

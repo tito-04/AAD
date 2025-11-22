@@ -1,3 +1,7 @@
+// deti_coin_opencl.c
+// Strategy: Random Prefix (Nonce) + Slow Salt Interval
+// Matches behavior of: deti_coin_worker.c, deti_coin_cuda_worker.cu
+
 #define CL_TARGET_OPENCL_VERSION 120
 #define _GNU_SOURCE
 
@@ -6,7 +10,7 @@
 #include <string.h>
 #include <time.h>
 #include <signal.h>
-#include <unistd.h> // Required for sleep/usleep if needed
+#include <unistd.h> 
 
 #include "open_cl_util.h"
 #include "aad_data_types.h"
@@ -14,13 +18,23 @@
 #include "aad_vault.h"
 
 #define STORAGE_INTS  (1 << 16) 
-#define LOOP_SIZE 95 // Must match the Grinding Loop in Kernel V6
+#define LOOP_SIZE 95 
+
+// --- STRATEGY CONFIGURATION ---
+#define SALT_UPDATE_INTERVAL 50000ULL 
+#define FAST_NONCE_START 46
 
 static volatile int keep_running = 1;
+static u64_t host_lcg_state = 0;
 
 void sig_handler(int s) { (void)s; keep_running = 0; printf("\nStopping...\n"); }
 
-// Helper to check OpenCL errors explicitly
+// Helper: LCG Random Generator (Matches CPU/CUDA)
+static inline u64_t get_random_u64() {
+    host_lcg_state = 6364136223846793005ul * host_lcg_state + 1442695040888963407ul;
+    return host_lcg_state;
+}
+
 void check_cl_error(cl_int err, const char* op) {
     if (err != CL_SUCCESS) {
         fprintf(stderr, "OpenCL Error during %s: %d\n", op, err);
@@ -35,8 +49,6 @@ char* load_kernel(const char* filename) {
     long sz = ftell(f);
     rewind(f);
     char* buf = malloc(sz + 1);
-    
-    // FIX 1: Check return value of fread
     if (fread(buf, 1, sz, f) != (size_t)sz) {
         fprintf(stderr, "Error reading kernel file\n");
         free(buf);
@@ -48,30 +60,44 @@ char* load_kernel(const char* filename) {
     return buf;
 }
 
-// Helper to prepare the custom text template (Matches Worker Logic)
-static void prepare_template(u32_t *buffer, const char *custom_text, int custom_len) {
+// Helper: Generates Template with Header + Text + Random Salt (Matches CPU Logic)
+static void generate_host_template(u32_t *buffer, const char *custom_text, int custom_len) {
     u08_t *bytes = (u08_t *)buffer;
     memset(buffer, 0, 14 * sizeof(u32_t));
+
+    // 1. Header
     const char header[] = "DETI coin 2 ";
     for(int i = 0; i < 12; i++) bytes[i ^ 3] = (u08_t)header[i];
 
     int current_idx = 12;
+    const int end_idx = 45; // Salt ends at 45
     int text_pos = 0;
 
+    // 2. Custom Text
     if (custom_text != NULL) {
-        while(text_pos < custom_len && current_idx < 54) {
+        while(text_pos < custom_len && current_idx <= end_idx) {
             char c = custom_text[text_pos++];
             if(c < 32 || c > 126) c = ' '; 
             bytes[current_idx ^ 3] = (u08_t)c;
             current_idx++;
         }
     }
+    
+    // 3. Random Salt (Bytes 12-45)
+    while (current_idx <= end_idx) {
+        u64_t rnd = get_random_u64();
+        u08_t ascii_char = 32 + (u08_t)(( (u08_t)(rnd >> 56) * 95) >> 8);
+        bytes[current_idx ^ 3] = ascii_char;
+        current_idx++;
+    }
+
+    bytes[54 ^ 3] = (u08_t)'\n';
+    bytes[55 ^ 3] = 0x80;
 }
 
 int main(int argc, char** argv) {
     signal(SIGINT, sig_handler);
 
-    // parse custom text from argv
     const char *custom_text = (argc > 1) ? argv[1] : NULL;
 
     // --- OpenCL setup ---
@@ -86,8 +112,9 @@ int main(int argc, char** argv) {
     }
     char name[128];
     clGetDeviceInfo(device, CL_DEVICE_NAME, sizeof(name), name, NULL);
-    printf("=== DETI COIN MINER - OpenCL V3 (Optimized) ===\n");
+    printf("=== DETI COIN MINER - OpenCL (Standard Strategy) ===\n");
     printf("Device: %s\n", name);
+    printf("Strategy: Random Prefix + Slow Salt (Interval: %llu)\n", (unsigned long long)SALT_UPDATE_INTERVAL);
     if (custom_text) printf("Custom Text: \"%s\"\n", custom_text);
     printf("Mining... (Ctrl+C to stop)\n\n");
 
@@ -95,7 +122,6 @@ int main(int argc, char** argv) {
     cl_command_queue queue;
     cl_int err;
 
-    // FIX 2: Replace CL_CALL_ALT with explicit error checking
     ctx = clCreateContext(NULL, 1, &device, NULL, NULL, &err);
     check_cl_error(err, "clCreateContext");
 
@@ -103,12 +129,9 @@ int main(int argc, char** argv) {
     check_cl_error(err, "clCreateCommandQueue");
 
     char* source = load_kernel("deti_coin_opencl_kernel.cl");
-    cl_program prog;
-    
-    prog = clCreateProgramWithSource(ctx, 1, (const char**)&source, NULL, &err);
+    cl_program prog = clCreateProgramWithSource(ctx, 1, (const char**)&source, NULL, &err);
     check_cl_error(err, "clCreateProgramWithSource");
     
-    // Build program
     if (clBuildProgram(prog, 1, &device, "", NULL, NULL) != CL_SUCCESS) {
         size_t log_size;
         clGetProgramBuildInfo(prog, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
@@ -120,74 +143,84 @@ int main(int argc, char** argv) {
     }
     free(source);
 
-    cl_kernel kernel;
-    kernel = clCreateKernel(prog, "search_deti_coins", &err);
+    cl_kernel kernel = clCreateKernel(prog, "search_deti_coins", &err);
     check_cl_error(err, "clCreateKernel");
 
-    // OPTIMIZATION: Use PINNED memory (CL_MEM_ALLOC_HOST_PTR)
-    cl_mem d_storage;
-    d_storage = clCreateBuffer(ctx, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
+    cl_mem d_storage = clCreateBuffer(ctx, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
                                STORAGE_INTS * sizeof(u32_t), NULL, &err);
     check_cl_error(err, "clCreateBuffer (Storage)");
 
-    // Map buffer to get host pointer
     u32_t* storage = (u32_t*)clEnqueueMapBuffer(queue, d_storage, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE,
                                               0, STORAGE_INTS * sizeof(u32_t), 0, NULL, NULL, &err);
     check_cl_error(err, "clEnqueueMapBuffer");
     storage[0] = 1;
 
-    // --- PREPARE TEMPLATE FOR KERNEL V6 ---
+    // --- INITIALIZE STRATEGY ---
     int custom_len = (custom_text) ? strlen(custom_text) : 0;
     if (custom_len > 34) custom_len = 34;
     
     u32_t h_template[16];
-    prepare_template(h_template, custom_text, custom_len);
-    u32_t fixed_len = 12 + custom_len;
+    // Initial Salt Generation
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    host_lcg_state = ((u64_t)ts.tv_nsec) ^ ((u64_t)getpid() << 32);
+
+    generate_host_template(h_template, custom_text, custom_len);
+
+    // CRITICAL: Set fixed_len to 46 (FAST_NONCE_START)
+    // This tells the kernel to Preserve bytes 0-45 (Header + Text + Salt)
+    // and only randomize Bytes 46-52 (Nonce)
+    u32_t fixed_len = FAST_NONCE_START; 
 
     cl_mem d_template = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                        16 * sizeof(u32_t), h_template, &err);
     check_cl_error(err, "clCreateBuffer (Template)");
 
-    // Setup Randomness
     u64_t seed   = time(NULL) ^ ((u64_t)clock() << 16);
-    u64_t offset = ((u64_t)rand() << 32) | rand();
-    u64_t base_counter = 0;
-    u64_t total_hashes = 0; // Track total hashes (threads * loop_size)
+    u64_t offset = 0;
+    u64_t total_hashes = 0; 
     u32_t max_ints = STORAGE_INTS;
     u32_t debug = 0;
 
-    // Tuning Work Size
-    size_t global = 256 * 1024; // Slightly reduced for grinding kernel
+    size_t global = 256 * 1024; 
     size_t local  = 256; 
 
     struct timespec t0, t_curr;
     clock_gettime(CLOCK_MONOTONIC, &t0);
     u64_t last_report_hashes = 0;
 
-    // --- SET KERNEL ARGUMENTS (Args 0-7 for V6 Kernel) ---
     CL_CALL(clSetKernelArg, (kernel, 1, sizeof(u64_t), &seed));
     CL_CALL(clSetKernelArg, (kernel, 2, sizeof(u64_t), &offset));
     CL_CALL(clSetKernelArg, (kernel, 4, sizeof(u32_t), &max_ints));
     CL_CALL(clSetKernelArg, (kernel, 5, sizeof(u32_t), &debug));
-    CL_CALL(clSetKernelArg, (kernel, 6, sizeof(cl_mem), &d_template)); // New Arg
-    CL_CALL(clSetKernelArg, (kernel, 7, sizeof(u32_t), &fixed_len));   // New Arg
+    CL_CALL(clSetKernelArg, (kernel, 6, sizeof(cl_mem), &d_template));
+    CL_CALL(clSetKernelArg, (kernel, 7, sizeof(u32_t), &fixed_len));
+
+    u64_t salt_age = 0;
 
     while (keep_running) {
-        // Unmap before Kernel execution (release host ownership)
+        
+        // 1. Strategy: Update Salt (Bytes 12-45) periodically
+        if (salt_age >= SALT_UPDATE_INTERVAL) {
+             generate_host_template(h_template, custom_text, custom_len);
+             CL_CALL(clEnqueueWriteBuffer, (queue, d_template, CL_TRUE, 0, 64, h_template, 0, NULL, NULL));
+             salt_age = 0;
+        } else {
+             salt_age++;
+        }
+
+        // 2. Strategy: Randomize Nonce Base (Bytes 46-52)
+        u64_t base_counter = get_random_u64();
+
         CL_CALL(clEnqueueUnmapMemObject, (queue, d_storage, storage, 0, NULL, NULL));
 
-        // Update dynamic args
         CL_CALL(clSetKernelArg, (kernel, 0, sizeof(cl_mem), &d_storage));
         CL_CALL(clSetKernelArg, (kernel, 3, sizeof(u64_t), &base_counter));
 
-        // Launch Kernel
         CL_CALL(clEnqueueNDRangeKernel, (queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL));
         
-        // Update counters
-        base_counter += global;
-        total_hashes += (u64_t)global * LOOP_SIZE; // Account for Nonce Grinding
+        total_hashes += (u64_t)global * LOOP_SIZE;
 
-        // Re-Map to read results
         storage = (u32_t*)clEnqueueMapBuffer(queue, d_storage, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE,
                                            0, STORAGE_INTS * sizeof(u32_t), 0, NULL, NULL, &err);
         check_cl_error(err, "clEnqueueMapBuffer (Read)");
@@ -211,7 +244,6 @@ int main(int argc, char** argv) {
 
                 save_coin(coin_data);
             }
-            // Reset counter
             storage[0] = 1;
         }
 
@@ -229,7 +261,6 @@ int main(int argc, char** argv) {
     save_coin(NULL);
     printf("\n\nAll coins saved to deti_coins_v2_vault.txt\n");
 
-    // Cleanup
     clEnqueueUnmapMemObject(queue, d_storage, storage, 0, NULL, NULL);
     clReleaseMemObject(d_storage);
     clReleaseMemObject(d_template);

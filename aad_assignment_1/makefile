@@ -23,7 +23,7 @@ NVCCFLAGS = -arch=$(CUDA_ARCH) -O3
 #
 # Default target
 #
-all: sha1_tests deti_coin_no_simd avx avx2 avx512f sha1_cuda_test cuda_miner opencl_miner server client_scalar client_avx client_avx2 client_avx512f client_cuda client_opencl
+all: sha1_tests deti_coin_no_simd avx avx2 avx512f sha1_cuda_test cuda_miner opencl_miner server client_scalar client_avx client_avx2 client_avx512f client_cuda client_opencl miner_wasm oneapi
 
 #
 # Clean up
@@ -33,13 +33,15 @@ clean:
 	rm -f sha1_cuda_test sha1_cuda_kernel.cubin
 	rm -f deti_coin_no_simd
 	rm -f avx avx2 avx512f
-	rm -f temp_avx temp_avx2 temp_avx512f
+	rm -f MP_avx MP_avx2 MP_avx512f
 	rm -f a.out
 	rm -f cuda_miner miner_kernel.cubin
 	rm -f opencl_miner
 	rm -f server
 	rm -f client_scalar client_avx client_avx2 client_avx512f client_cuda client_opencl
 	rm -f client_scalar.o client_cuda.o client_opencl.o deti_coin_cuda_worker.o
+	rm -f miner.wasm.js miner_simd_wasm.wasm.js miner.wasm.wasm
+	rm -f miner_oneapi miner_oneapi_cpu
 
 #
 # Tests & Kernels
@@ -59,7 +61,7 @@ miner_kernel.cubin: miner_kernel.cu aad_sha1.h aad_data_types.h makefile
 #
 # Miners (Standalone)
 #
-deti_coin_no_simd: deti_coin_no_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
+deti_coin_no_simd: deti_coin_miner_no_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
 	$(CC) -march=native -Wall -Wshadow -Werror -O3 -funroll-loops -flto $< -o $@
 
 avx: deti_coin_miner_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
@@ -71,10 +73,21 @@ avx2: deti_coin_miner_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_util
 avx512f: deti_coin_miner_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
 	$(CC) -mavx512f -Wall -Wshadow -Werror -O3 -funroll-loops -flto $< -o $@
 
-cuda_miner: cuda_miner.c miner_kernel.cubin aad_sha1.h aad_data_types.h aad_utilities.h aad_cuda_utilities.h aad_sha1_cpu.h aad_vault.h makefile
-	$(CC) -march=native -Wall -Wshadow -O3 -flto -ffast-math -I$(CUDA_DIR)/include $< -o $@ -L$(CUDA_DIR)/lib64 -lcuda
+# SIMD versions of deti_coin_miner_OpenMP.c
+#
+MP_avx: deti_coin_miner_omp_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
+	cc -mavx -Wall -Wshadow -Werror -O3 -funroll-loops -flto -fopenmp $< -o $@
 
-opencl_miner: deti_coin_opencl.c aad_data_types.h aad_sha1_cpu.h aad_vault.h open_cl_util.h makefile
+MP_avx2: deti_coin_miner_omp_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
+	cc -mavx2 -Wall -Wshadow -Werror -O3 -funroll-loops -flto -fopenmp $< -o $@
+
+MP_avx512f: deti_coin_miner_omp_simd.c aad_sha1_cpu.h aad_sha1.h aad_data_types.h aad_utilities.h aad_vault.h makefile
+	cc -mavx512f -Wall -Wshadow -Werror -O3 -funroll-loops -flto -fopenmp $< -o $@
+
+cuda_miner: cuda_miner.c miner_kernel.cubin aad_sha1.h aad_data_types.h aad_utilities.h aad_cuda_utilities.h aad_sha1_cpu.h aad_vault.h makefile
+	$(CC) -march=native -Wall -Wshadow -O3 -flto -ffast-math -I$(CUDA_DIR)/include cuda_miner.c aad_histogram.c -o $@ -L$(CUDA_DIR)/lib64 -lcuda
+
+opencl_miner: deti_coin_miner_opencl.c aad_data_types.h aad_sha1_cpu.h aad_vault.h open_cl_util.h makefile
 	$(CC) -march=native -Wall -Wshadow -Werror -O3 -I$(OPENCL_DIR)/include $< -o $@ -L$(OPENCL_DIR)/lib64 -lOpenCL
 
 server: server.c aad_vault.h aad_sha1_cpu.h aad_data_types.h
@@ -90,8 +103,8 @@ deti_coin_cuda_worker.o: deti_coin_cuda_worker.cu aad_cuda_utilities.h
 
 # 1. Scalar Client
 # We compile client.c directly here to avoid object file sharing issues
-client_scalar: client.c deti_coin_worker.c
-	$(CC) $(CFLAGS) client.c deti_coin_worker.c -o $@
+client_scalar: client.c deti_coin_no_simd_worker.c
+	$(CC) $(CFLAGS) client.c deti_coin_no_simd_worker.c -o $@
 
 # 2. AVX Client
 client_avx: client.c deti_coin_simd_worker.c
@@ -116,3 +129,35 @@ client_cuda: client.c deti_coin_cuda_worker.o miner_kernel.cubin
 # Compile client.c with -DUSE_OPENCL_WORKER
 client_opencl: client.c deti_coin_opencl_worker.c
 	$(CC) $(CFLAGS) -DUSE_OPENCL_WORKER -I$(OPENCL_DIR)/include -o $@ client.c deti_coin_opencl_worker.c -L$(OPENCL_DIR)/lib64 -lOpenCL
+
+# WebAssembly Miner Target (Scalar)
+#
+miner_wasm: miner_wasm.c aad_sha1.h makefile
+	emcc $< -o miner.wasm.js -O3 -flto \
+	-s WASM=1 \
+	-s MODULARIZE=1 \
+	-s EXPORT_ES6=1 \
+	-s EXPORTED_RUNTIME_METHODS="['stringToNewUTF8', 'allocateUTF8', 'HEAPU8', 'HEAPU32']" \
+	-s EXPORTED_FUNCTIONS="['_search_chunk', '_get_coin_buffer_ptr', '_get_hash_buffer_ptr', '_get_lcg_state_ptr', '_malloc', '_free']" \
+	-s ALLOW_MEMORY_GROWTH=1
+#
+# WebAssembly Miner Target (SIMD 128-bit)
+#
+miner_simd_wasm: miner_simd_wasm.c aad_sha1.h makefile
+	emcc $< -o miner.wasm.js -O3 -flto -msimd128 \
+	-s WASM=1 \
+	-s MODULARIZE=1 \
+	-s EXPORT_ES6=1 \
+	-s EXPORTED_RUNTIME_METHODS="['stringToNewUTF8', 'allocateUTF8', 'HEAPU8', 'HEAPU32']" \
+	-s EXPORTED_FUNCTIONS="['_search_chunk', '_get_coin_buffer_ptr', '_get_hash_buffer_ptr', '_get_lcg_state_ptr', '_malloc', '_free']" \
+	-s ALLOW_MEMORY_GROWTH=1
+
+#
+# oneAPI / SYCL Implementation (Intel GPU / CPU)
+#
+oneapi: deti_coin_miner_oneapi.cpp aad_sha1.h aad_data_types.h aad_vault.h makefile
+	icpx -fsycl -O3 -std=c++20 -Wno-c99-designator -Wno-writable-strings deti_coin_miner_oneapi.cpp -o miner_oneapi
+
+
+oneapi_cpu: deti_coin_miner_oneapi.cpp aad_sha1.h aad_data_types.h aad_vault.h makefile
+	icpx -fsycl -fsycl-targets=spir64_x86_64 -O3 -std=c++20 deti_coin_miner_oneapi.cpp -o miner_oneapi_cpu
