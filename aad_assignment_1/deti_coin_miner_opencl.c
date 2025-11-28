@@ -78,6 +78,7 @@ static void generate_host_template(u32_t *buffer, const char *custom_text, int c
 
 int main(int argc, char** argv) {
     signal(SIGINT, sig_handler);
+    signal(SIGALRM, sig_handler); // <--- ADD THIS LINE
     const char *custom_text = (argc > 1) ? argv[1] : NULL;
     int custom_len = custom_text ? strlen(custom_text) : 0;
 
@@ -182,6 +183,8 @@ int main(int argc, char** argv) {
     host_lcg_state = t0.tv_nsec;
 
     printf("[RUN] Starting Mining Loop...\n");
+
+    alarm(60);
 
     int fr=0;
     while(keep_running) {

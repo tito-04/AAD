@@ -7,7 +7,7 @@ set ylabel 'Occurrences (Log Scale)'
 set grid
 set style fill solid 0.5
 set logscale y
-set xrange [3.20:10.00]
+set xrange [2.90:10.00]
 plot 'hist_time.dat' using 1:2 with boxes title 'Kernel Duration' lc rgb '#0060ad'
 set title 'Coins Found per Kernel Launch'
 set xlabel 'Number of Coins'

@@ -295,7 +295,7 @@ void search_deti_coins_openmp(const char *custom_text, u64_t max_attempts) {
 
     time_measurement();
     double total_time = (measured_wall_time[1].tv_sec + measured_wall_time[1].tv_nsec * 1e-9) - start_time;
-    printf("\n\n--- DONE ---\nTime: %.2fs\nAvg Speed: %.2f MH/s\n", total_time, (double)global_total_attempts/total_time/1e6);
+    printf("\n\n--- DONE ---\nAttempts: %llu Time: %.2fs\nAvg Speed: %.2f MH/s\n", (unsigned long long)global_total_attempts, total_time, (double)global_total_attempts/total_time/1e6);
     save_coin(NULL); 
 }
 

@@ -91,7 +91,7 @@ void run_cuda_miner(const char *custom_text, u64_t max_attempts, int gpu_device_
     CUdeviceptr d_templates[N_STREAMS];
     
     u64_t base_counters[N_STREAMS];
-    u64_t stream_salt_ages[N_STREAMS]; // Track salt age per stream
+    // REMOVED: u64_t stream_salt_ages[N_STREAMS]; -- No longer needed
 
     void* kernel_args[N_STREAMS][3];
     
@@ -148,7 +148,7 @@ void run_cuda_miner(const char *custom_text, u64_t max_attempts, int gpu_device_
 
     printf("========================================\n");
     printf("DETI COIN MINER v2 (CUDA)\n");
-    printf("Strategy: Random Prefix + Salt Interval\n");
+    printf("Strategy: High Variance (New Salt Every Launch)\n");
     printf("Device: %s | Streams: %d\n", cd.device_name, N_STREAMS);
     printf("========================================\n");
 
@@ -156,7 +156,6 @@ void run_cuda_miner(const char *custom_text, u64_t max_attempts, int gpu_device_
     double start_time = measured_wall_time[1].tv_sec + measured_wall_time[1].tv_nsec * 1e-9;
     double last_report_time = start_time;
 
-    // Seed LCG
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     host_lcg_state = ((u64_t)ts.tv_nsec) ^ ((u64_t)getpid() << 32);
@@ -165,20 +164,19 @@ void run_cuda_miner(const char *custom_text, u64_t max_attempts, int gpu_device_
     // Prime Pipeline
     for(int s = 0; s < N_STREAMS; s++) {
         h_vaults[s][0] = 1u;
-        // Initialize Salt
         generate_host_template(h_templates[s], custom_text, custom_len);
-        stream_salt_ages[s] = 0;
-
+        
         CU_CALL( cuMemcpyHtoDAsync, (d_templates[s], h_templates[s], (size_t)cd.data_size[0], streams[s]) );
         CU_CALL( cuMemcpyHtoDAsync, (d_vaults[s], h_vaults[s], (size_t)cd.data_size[1], streams[s]) );
 
-        // STRATEGY: Random Base for Nonce (Bytes 46-52)
         base_counters[s] = get_random_u64();
 
         CU_CALL( cuEventRecord, (start_events[s], streams[s]) );
         CU_CALL( cuLaunchKernel , (cd.cu_kernel, cd.grid_dim_x, 1u, 1u, cd.block_dim_x, 1u, 1u, 0u, streams[s], &kernel_args[s][0], NULL) );
         CU_CALL( cuEventRecord, (stop_events[s], streams[s]) );
     }
+
+    alarm(60); 
 
     // Main Loop
     for(int s = 0; keep_running; s = (s + 1) % N_STREAMS)
@@ -213,29 +211,31 @@ void run_cuda_miner(const char *custom_text, u64_t max_attempts, int gpu_device_
                 save_coin(&h_vaults[s][i]);
                 total_coins_found++;
                 u08_t *cb = (u08_t *)&h_vaults[s][i];
-                printf("\n[Stream %d] FOUND! Nonce: %c%c%c%c%c%c%c%c\n", s,
-                    cb[46^3], cb[47^3], cb[48^3], cb[49^3], cb[50^3], cb[51^3], cb[52^3], cb[53^3]);
+                printf("\n[Stream %d] FOUND! Nonce: %c\n", s,cb[53^3]);
             }
         }
 
         if(max_attempts != 0 && total_attempts >= max_attempts) keep_running = 0;
 
         if(keep_running) {
-            // STRATEGY UPDATE: Update Salt only if interval reached
-            if (stream_salt_ages[s] >= SALT_UPDATE_INTERVAL) {
-                generate_host_template(h_templates[s], custom_text, custom_len);
-                CU_CALL( cuMemcpyHtoDAsync, (d_templates[s], h_templates[s], (size_t)cd.data_size[0], streams[s]) );
-                stream_salt_ages[s] = 0;
-            } else {
-                stream_salt_ages[s]++;
-            }
+            // =========================================================
+            // STRATEGY UPDATE: Always Refresh Salt (Like CPU No-SIMD)
+            // =========================================================
+            
+            // 1. Generate NEW random template (Bytes 12-45)
+            generate_host_template(h_templates[s], custom_text, custom_len);
+            
+            // 2. Upload template to GPU immediately
+            CU_CALL( cuMemcpyHtoDAsync, (d_templates[s], h_templates[s], (size_t)cd.data_size[0], streams[s]) );
 
-            // STRATEGY UPDATE: Always use new Random Base for Nonce
+            // 3. Generate NEW random nonce base (Bytes 46-52)
             base_counters[s] = get_random_u64();
-
+            
+            // 4. Reset Vault
             h_vaults[s][0] = 1u;
             CU_CALL( cuMemcpyHtoDAsync, (d_vaults[s], h_vaults[s], (size_t)cd.data_size[1], streams[s]) );
             
+            // 5. Launch Kernel
             CU_CALL( cuEventRecord, (start_events[s], streams[s]) );
             CU_CALL( cuLaunchKernel , (cd.cu_kernel, cd.grid_dim_x, 1u, 1u, cd.block_dim_x, 1u, 1u, 0u, streams[s], &kernel_args[s][0], NULL) );
             CU_CALL( cuEventRecord, (stop_events[s], streams[s]) );
@@ -276,7 +276,7 @@ void run_cuda_miner(const char *custom_text, u64_t max_attempts, int gpu_device_
 
     time_measurement();
     double total_time = (measured_wall_time[1].tv_sec + measured_wall_time[1].tv_nsec * 1e-9) - start_time;
-    printf("\n\n--- DONE ---\nTime: %.2fs\nAvg: %.2f MH/s\n", total_time, (double)total_attempts / total_time / 1e6);
+    printf("\n\n--- DONE ---\nAttempts: %llu Time: %.2fs\nAvg: %.2f MH/s\n", (unsigned long long)total_attempts, total_time, (double)total_attempts / total_time / 1e6);
 }
 
 int main(int argc, char *argv[])
