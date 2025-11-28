@@ -91,7 +91,6 @@ void run_cuda_miner(const char *custom_text, u64_t max_attempts, int gpu_device_
     CUdeviceptr d_templates[N_STREAMS];
     
     u64_t base_counters[N_STREAMS];
-    // REMOVED: u64_t stream_salt_ages[N_STREAMS]; -- No longer needed
 
     void* kernel_args[N_STREAMS][3];
     
@@ -148,7 +147,6 @@ void run_cuda_miner(const char *custom_text, u64_t max_attempts, int gpu_device_
 
     printf("========================================\n");
     printf("DETI COIN MINER v2 (CUDA)\n");
-    printf("Strategy: High Variance (New Salt Every Launch)\n");
     printf("Device: %s | Streams: %d\n", cd.device_name, N_STREAMS);
     printf("========================================\n");
 
@@ -175,8 +173,6 @@ void run_cuda_miner(const char *custom_text, u64_t max_attempts, int gpu_device_
         CU_CALL( cuLaunchKernel , (cd.cu_kernel, cd.grid_dim_x, 1u, 1u, cd.block_dim_x, 1u, 1u, 0u, streams[s], &kernel_args[s][0], NULL) );
         CU_CALL( cuEventRecord, (stop_events[s], streams[s]) );
     }
-
-    alarm(60); 
 
     // Main Loop
     for(int s = 0; keep_running; s = (s + 1) % N_STREAMS)
@@ -218,9 +214,7 @@ void run_cuda_miner(const char *custom_text, u64_t max_attempts, int gpu_device_
         if(max_attempts != 0 && total_attempts >= max_attempts) keep_running = 0;
 
         if(keep_running) {
-            // =========================================================
             // STRATEGY UPDATE: Always Refresh Salt (Like CPU No-SIMD)
-            // =========================================================
             
             // 1. Generate NEW random template (Bytes 12-45)
             generate_host_template(h_templates[s], custom_text, custom_len);
